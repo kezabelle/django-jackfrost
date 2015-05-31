@@ -6,9 +6,6 @@ from __future__ import division
 from collections import namedtuple
 import logging
 from mimetypes import guess_extension
-# from django.template import TemplateDoesNotExist
-# from django.template.loader import render_to_string
-# from django.utils.http import is_safe_url
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -112,12 +109,12 @@ class URLBuilder(object):
             return BuildPageResult(response=None, storage_returned=None)
 
         try:
-            result = render_to_string(template_name=[
+            result = render_to_string([
                 normpath('jackfrost/{}/301.html'.format(final_url)),
                 normpath('jackfrost/{}/301.html'.format(url)),
                 'jackfrost/301.html',
                 '301.html',
-            ], context={'this_url': url, 'next_url': final_url})
+            ], {'this_url': url, 'next_url': final_url})
         except TemplateDoesNotExist:
             logger.error("Unable to generate a redirecting page for {url} "
                          "because there is no 301 template".format(url=url),
@@ -138,10 +135,10 @@ class URLBuilder(object):
 
     def build_error_page(self, error):
         try:
-            result = render_to_string(template_name=[
+            result = render_to_string([
                 'jackfrost/{error!s}.html'.format(error=error),
                 '{error!s}.html'.format(error=error),
-            ], context={'request_path': None})
+            ], {'request_path': None})
         except TemplateDoesNotExist:
             logger.error("Unable to generate a {error!s} page".format(error=error),  # noqa
                          exc_info=1)
