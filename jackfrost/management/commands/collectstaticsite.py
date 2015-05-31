@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
-from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import division
 from django.utils.six.moves import input
 from django.core.management import BaseCommand
 from django.core.management import CommandError
-from jackfrost.models import URLCollector, URLBuilder
+from jackfrost.models import URLCollector
+from jackfrost.models import URLBuilder
+from jackfrost.signals import build_started
+from jackfrost.signals import build_finished
 
 
 class Command(BaseCommand):
@@ -49,6 +50,10 @@ class Command(BaseCommand):
         if not collected_urls:
             raise CommandError("No URLs found after running all defined `JACKFROST_RENDERERS`")
 
+
         builder = URLBuilder(urls=collected_urls)
+        build_started.send(sender=builder.__class__)
         built = builder()
+        build_finished.send(sender=builder.__class__)
+
 

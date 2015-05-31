@@ -8,3 +8,4 @@ pip-selfcheck.json
 share/
 .tox
 test_collectstatic
+README.html
