@@ -1,6 +1,9 @@
 django-jackfrost 0.1.0
 ======================
 
+.. image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=master
+  :target: https://travis-ci.org/kezabelle/django-jackfrost
+
 Allows rendering Django views into a collection of static files.
 
 `django-medusa`_ doesn't appear to be active anymore, and I didn't like the
