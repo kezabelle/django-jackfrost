@@ -12,6 +12,7 @@ from mimetypes import guess_extension
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
 from django.utils.http import is_safe_url
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.six import BytesIO
@@ -99,7 +100,7 @@ class URLBuilder(object):
     def write(self, name, content):
         if self.storage.exists(name=name):
             self.storage.delete(name=name)
-        return self.storage.save(name=name, content=BytesIO(content))
+        return self.storage.save(name=name, content=BytesIO(force_bytes(content)))  # noqa
 
     def build_redirect_page(self, url, final_url):
         urlparts = urlparse(url)
@@ -150,7 +151,7 @@ class URLBuilder(object):
             filename = self.get_target_filename(
                 url='{error!s}.html'.format(error=error),
                 response=response)
-            stored = self.write(name=filename, content=BytesIO(result))
+            stored = self.write(name=filename, content=result)
             built_page.send(sender=self.__class__,
                             builder=self,
                             url=None,

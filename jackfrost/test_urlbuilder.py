@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from django.conf import settings
+from django.utils.encoding import force_bytes
 import os
 from shutil import rmtree
 from django.contrib.staticfiles.storage import StaticFilesStorage
@@ -94,8 +95,8 @@ def test_build():
         'jackfrost/content/a/index.html'
     ]
     storage = builder.storage
-    assert storage.open(sorted_files_saved[-2]).readlines() == ['content_b']
-    assert storage.open(sorted_files_saved[-1]).readlines() == ['content_a']
+    assert storage.open(sorted_files_saved[-2]).readlines() == [b'content_b']
+    assert storage.open(sorted_files_saved[-1]).readlines() == [b'content_a']
     # remove(storage)
 
 
@@ -108,7 +109,7 @@ def test_build_page():
     output = builder.build_page(url=reverse('content_b'))
     assert output.response.status_code == 200
     assert output.storage_returned == 'jackfrost/content/a/b/index.html'
-    assert storage.open(output.storage_returned).readlines() == ['content_b']
+    assert storage.open(output.storage_returned).readlines() == [b'content_b']
     # remove(storage)
 
 
@@ -127,9 +128,8 @@ def test_build_page_includes_redirections():
     builder.build_page(url=reverse('redirect_a'))
 
     # redirects happened ...
-    redirect_code = '<meta http-equiv="refresh" content="3; url={next}">'.format(
-        next=reverse('content_b'),
-    )
+    redirect_code = force_bytes('<meta http-equiv="refresh" content="3; '
+                                'url={next}">'.format(next=reverse('content_b')))
     redirect1 = storage.open('jackfrost/r/a/index.html').read()
     redirect2 = storage.open('jackfrost/r/a_b/index.html').read()
     assert redirect_code in redirect1

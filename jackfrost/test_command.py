@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from shutil import rmtree
+from django.utils.encoding import force_bytes
 import os
 from django.conf import settings
 from django.core.management import call_command
@@ -72,12 +73,11 @@ def test_collectstaticsite_goes_ok():
     assert output == None
 
     # redirects happened ...
-    redirect_code = '<meta http-equiv="refresh" content="3; url={next}">'.format(
-        next=reverse('content_b'),
-    )
+    redirect_code = force_bytes('<meta http-equiv="refresh" content="3; '
+                                'url={next}">'.format(next=reverse('content_b')))
     redirect1 = storage.open('jackfrost/r/a/index.html').read()
     redirect2 = storage.open('jackfrost/r/a_b/index.html').read()
     assert redirect_code in redirect1
     assert redirect_code in redirect2
-    assert storage.open('jackfrost/content/a/index.html').readlines() == ['content_a']  # noqa
-    assert storage.open('jackfrost/content/a/b/index.html').readlines() == ['content_b']  # noqa
+    assert storage.open('jackfrost/content/a/index.html').readlines() == [b'content_a']  # noqa
+    assert storage.open('jackfrost/content/a/b/index.html').readlines() == [b'content_b']  # noqa
