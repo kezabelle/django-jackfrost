@@ -9,6 +9,11 @@ from mimetypes import guess_extension
 # from django.template import TemplateDoesNotExist
 # from django.template.loader import render_to_string
 # from django.utils.http import is_safe_url
+from django.http import HttpResponseNotFound, HttpResponse
+from django.template import TemplateDoesNotExist
+from django.template.loader import render_to_string
+from django.utils.http import is_safe_url
+from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.six import BytesIO
 from jackfrost.signals import builder_started, builder_finished, built_page
 from os.path import splitext, join
@@ -29,29 +34,32 @@ __all__ = ['URLBuilder', 'URLCollector', 'ModelRenderer']
 logger = logging.getLogger(__name__)
 
 
-BuildRedirectResult = namedtuple('BuildRedirectResult', 'response content storage_returned')  # noqa
-BuildPageResult = namedtuple('BuildPageResult', 'response redirects storage_returned')  # noqa
-BuildResult = namedtuple('BuildResult', 'built_pages client content_types storage_backend')  # noqa
+# BuildRedirectResult = namedtuple('BuildRedirectResult', 'response storage_returned')  # noqa
+BuildPageResult = namedtuple('BuildPageResult', 'response storage_returned')  # noqa
+# BuildResult = namedtuple('BuildResult', 'built_pages client content_types storage_backend')  # noqa
 
 class URLBuilder(object):
     """
     Given a list of URLs, presumably from a URLCollector, build them to files
     """
-    __slots__ = ('urls')
+    __slots__ = ('urls', '_storage', '_client', '_content_types')
 
     def __init__(self, urls):
         self.urls = urls
+        self._storage = None
+        self._client = None
+        self._content_types = None
 
     def get_content_types_mapping(self):
         return getattr(settings, 'JACKFROST_CONTENT_TYPES',
                        defaults.JACKFROST_CONTENT_TYPES)
 
-    def get_target_filename(self, url, response, content_types):
+    def get_target_filename(self, url, response):
         url = url.lstrip('/')
         if splitext(url)[1] == '':
             content_type = response['Content-Type']
             major = content_type.split(';', 1)[0]
-            extension = content_types.get(
+            extension = self.content_types.get(
                 major, guess_extension(major, strict=False))
             filename = '{path}/{file}{ext}'.format(path=url, file='index',
                                                    ext=extension)
@@ -70,89 +78,124 @@ class URLBuilder(object):
         storage_cls = import_string(storage)
         return storage_cls(**kwargs)
 
-    def write(self, name, content, storage):
-        if storage.exists(name=name):
-            storage.delete(name=name)
-        return storage.save(name=name, content=BytesIO(content))
-    #
-    # def build_redirect_page(self, url, final_url, response, storage, content_types):
-    #     urlparts = urlparse(url)
-    #     url = urlparts.path
-    #     if not is_safe_url(url):
-    #         logger.error("Unable to generate a redirecting page for {url} "
-    #                      "because Django says it's not safe".format(url=url))
-    #         return BuildRedirectResult(response=None, content=None,
-    #                                    storage_returned=None)
-    #     try:
-    #         result = render_to_string(template_name=[
-    #             normpath('jackfrost/{}/301.html'.format(final_url)),
-    #             normpath('jackfrost/{}/301.html'.format(url)),
-    #             'jackfrost/301.html',
-    #             '301.html',
-    #         ], context={'this_url': url, 'next_url': final_url})
-    #     except TemplateDoesNotExist as e:
-    #         logger.error("Unable to generate a redirecting page for {url} "
-    #                      "because there is no 301 template".format(url=url),
-    #                      exc_info=1)
-    #         return BuildRedirectResult(response=None, content=None,
-    #                                    storage_returned=None)
-    #     filename = self.get_target_filename(url=url, response=response,
-    #                                         content_types=content_types)
-    #     stored = self.write(name=filename, content=BytesIO(result),
-    #                         storage=storage)
-    #     built_page.send(sender=self.__class__,
-    #                     builder=self,
-    #                     url=url,
-    #                     response=response,
-    #                     filename=filename,
-    #                     storage_backend=storage,
-    #                     storage_result=stored)
-    #     return BuildRedirectResult(response=response, content=result,
-    #                                storage_returned=stored)
+    @property
+    def storage(self):
+        if self._storage is None:
+            self._storage = self.get_storage()
+        return self._storage
 
-    def build_page(self, url, client, storage, content_types, url_index=None):
-        resp = client.get(url, follow=True)
+    @property
+    def client(self):
+        if self._client is None:
+            self._client = self.get_client()
+        return self._client
+
+    @property
+    def content_types(self):
+        if self._content_types is None:
+            self._content_types = self.get_content_types_mapping()
+        return self._content_types
+
+    def write(self, name, content):
+        if self.storage.exists(name=name):
+            self.storage.delete(name=name)
+        return self.storage.save(name=name, content=BytesIO(content))
+
+    def build_redirect_page(self, url, final_url):
+        urlparts = urlparse(url)
+        url = urlparts.path
+
+        if not is_safe_url(url):
+            logger.error("Unable to generate a redirecting page for {url} "
+                         "because Django says it's not safe".format(url=url))
+            return BuildPageResult(response=None, storage_returned=None)
+
+        try:
+            result = render_to_string(template_name=[
+                normpath('jackfrost/{}/301.html'.format(final_url)),
+                normpath('jackfrost/{}/301.html'.format(url)),
+                'jackfrost/301.html',
+                '301.html',
+            ], context={'this_url': url, 'next_url': final_url})
+        except TemplateDoesNotExist:
+            logger.error("Unable to generate a redirecting page for {url} "
+                         "because there is no 301 template".format(url=url),
+                         exc_info=1)
+            return BuildPageResult(response=None, storage_returned=None)
+
+        response = HttpResponse(content=result, content_type='text/html')
+        filename = self.get_target_filename(url=url, response=response)
+        stored = self.write(name=filename, content=result)
+        built_page.send(sender=self.__class__,
+                        builder=self,
+                        url=url,
+                        response=response,
+                        filename=filename,
+                        storage_result=stored)
+
+        return BuildPageResult(response=response, storage_returned=stored)
+
+    def build_error_page(self, error):
+        try:
+            result = render_to_string(template_name=[
+                'jackfrost/{error!s}.html'.format(error=error),
+                '{error!s}.html'.format(error=error),
+            ], context={'request_path': None})
+        except TemplateDoesNotExist:
+            logger.error("Unable to generate a {error!s} page".format(error=error),  # noqa
+                         exc_info=1)
+            return BuildPageResult(response=None, storage_returned=None)
+        else:
+            response = HttpResponseNotFound(content=result)
+            filename = self.get_target_filename(
+                url='{error!s}.html'.format(error=error),
+                response=response)
+            stored = self.write(name=filename, content=BytesIO(result))
+            built_page.send(sender=self.__class__,
+                            builder=self,
+                            url=None,
+                            response=response,
+                            filename=filename,
+                            storage_result=stored)
+            return BuildPageResult(response=response, storage_returned=stored)
+
+
+    def build_page(self, url, url_index=None):
+        resp = self.client.get(url, follow=True)
+        status = resp.status_code
         stored = None
-        redirects = []
-        if resp.status_code == 200:
-            # if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
-            #     import pdb; pdb.set_trace()
-            #     for r_url, status in resp.redirect_chain:
-            #         redirects.append(
-            #             self.build_redirect_page(url=r_url, final_url=url,
-            #                                      response=resp,
-            #                                      storage=storage,
-            #                                    content_types=content_types))
-            #     logger.debug("{url!s} went through a number of redirects")
+        if status == 200:
 
-            filename = self.get_target_filename(url=url, response=resp,
-                                                content_types=content_types)
-            stored = self.write(name=filename, content=resp.content,
-                                storage=storage)
+            # calculate changed URL and redirects if necessary
+            if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
+                previous_pages = resp.redirect_chain[:]
+                previous_pages.insert(0, (url, 301))  # hack to put in *this* url.
+                final_url = previous_pages.pop()[0]
+                urlparts = urlparse(final_url)
+                url = urlparts.path
+                for previous_page, previous_status in previous_pages:
+                    self.build_redirect_page(url=previous_page,
+                                             final_url=url)
+
+            filename = self.get_target_filename(url=url, response=resp)
+            stored = self.write(name=filename, content=resp.content)
             built_page.send(sender=self.__class__,
                             builder=self,
                             url=url,
                             response=resp,
                             filename=filename,
-                            storage_backend=storage,
                             storage_result=stored)
-        return BuildPageResult(response=resp, redirects=tuple(redirects),
-                               storage_returned=stored)
+        return BuildPageResult(response=resp, storage_returned=stored)
 
     def build(self):
         builder_started.send(sender=self.__class__, builder=self)
-        client = self.get_client()
-        content_types = self.get_content_types_mapping()
-        storage = self.get_storage()
         built = set()
         for idx, url in enumerate(self.urls, start=0):
-            built.add(self.build_page(url=url, client=client, storage=storage,
-                                      content_types=content_types,
-                                      url_index=idx))
+            built.add(self.build_page(url=url, url_index=idx))
+        for error in (401, 403, 404, 500):
+            built.add(self.build_error_page(error=error))
         builder_finished.send(sender=self.__class__, builder=self)
-        return BuildResult(built_pages=built, client=client,
-                           content_types=content_types,
-                           storage_backend=storage)
+        return built
 
     def __call__(self):
         return self.build()

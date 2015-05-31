@@ -40,8 +40,11 @@ def pytest_configure():
             ),
             BASE_DIR=HERE,
             STATIC_URL='/__s__/',
-            STATIC_ROOT=os.path.join(HERE, 'collectstatic'),
+            STATIC_ROOT=os.path.join(HERE, 'test_collectstatic'),
             ROOT_URLCONF='test_urls',
+            TEMPLATE_DIRS=(
+                os.path.join(HERE, 'test_templates'),
+            )
         )
     if hasattr(django, 'setup'):
         django.setup()

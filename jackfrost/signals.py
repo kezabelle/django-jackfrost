@@ -9,4 +9,4 @@ builder_started = Signal(providing_args=('builder'))
 builder_finished = Signal(providing_args=('builder'))
 
 built_page = Signal(providing_args=('builder', 'url', 'response', 'filename',
-                                    'storage_backend', 'storage_result'))
+                                    'storage_result'))
