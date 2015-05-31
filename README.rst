@@ -166,6 +166,17 @@ is used instead of the ``get_absolute_url``.
 If the ``Model`` instance has a ``get_list_url`` method, that page will also be
 built. Useful for yielding paginated results, etc.
 
+Extras
+------
+
+Where possible, ``jackfrost`` will attempt to compensate for redirects (301, 302 etc)
+by writing an HTML page with a ``<meta refresh>`` tag pointing at the final
+endpoint. The template used is called `301.html`.
+
+Additionally, static pages for 401, 403, 404 and 500 errors will be built
+from their respective templates, if they exist. Useful if you want to wire
+up Apache ``ErrorDocument`` directives or whatever.
+
 Running the tests (87% coverage)
 --------------------------------
 
