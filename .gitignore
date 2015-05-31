@@ -7,4 +7,4 @@ lib/
 pip-selfcheck.json
 share/
 .tox
-test_collectstatic/jackfrost
+test_collectstatic

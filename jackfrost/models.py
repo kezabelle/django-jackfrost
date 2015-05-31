@@ -9,7 +9,7 @@ from mimetypes import guess_extension
 # from django.template import TemplateDoesNotExist
 # from django.template.loader import render_to_string
 # from django.utils.http import is_safe_url
-from django.http import HttpResponseNotFound, HttpResponse
+from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.http import is_safe_url
@@ -146,7 +146,7 @@ class URLBuilder(object):
                          exc_info=1)
             return BuildPageResult(response=None, storage_returned=None)
         else:
-            response = HttpResponseNotFound(content=result)
+            response = HttpResponse(content=result)
             filename = self.get_target_filename(
                 url='{error!s}.html'.format(error=error),
                 response=response)
