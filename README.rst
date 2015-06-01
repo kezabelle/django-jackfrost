@@ -176,7 +176,23 @@ Additionally, static pages for 401, 403, 404 and 500 errors will be built
 from their respective templates, if they exist. Useful if you want to wire
 up Apache ``ErrorDocument`` directives or whatever.
 
-Running the tests (87% coverage)
+Reading from `sitemaps`_
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Giving ``jackfrost`` the dotted path to a standard `Django sitemap`_ as
+one of the ``JACKFROST_RENDERERS`` should do the right thing, and get the
+URLs out of the sitemap itself without you needing to do anything or write
+a new renderer.
+
+Reading from `django-medusa`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In theory, giving ``jackfrost`` the dotted path to a subclass of the `django-medusa`_
+`BaseStaticSiteRenderer`_ should do the right thing, and get the URLs out of
+the medusa renderer itself, without you doing anything. It will avoid going
+through the medusa rendering process, instead it'll go through mine.
+
+Running the tests (89% coverage)
 --------------------------------
 
 Given a complete clone::
@@ -191,3 +207,6 @@ Given a complete clone::
 .. _pytest: http://pytest.org/latest/
 .. _django-bakery: http://django-bakery.readthedocs.org/en/latest/
 .. _they don't: https://github.com/datadesk/django-bakery/issues/15
+.. _sitemaps: https://docs.djangoproject.com/en/stable/ref/contrib/sitemaps/
+.. _Django sitemap: https://docs.djangoproject.com/en/stable/ref/contrib/sitemaps/
+.. _BaseStaticSiteRenderer: https://github.com/mtigas/django-medusa/blob/master/django_medusa/renderers/base.py
