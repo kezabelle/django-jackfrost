@@ -15,4 +15,10 @@ JACKFROST_CONTENT_TYPES = {
     "text/css": ".css",
     "text/x-markdown": '.md',
     "text/markdown": '.md',
+    "text/xml": '.xml',
+    "text/rss+xml": '.rss',
+    "application/rss+xml": '.rss',
+    "application/atom+xml": '.atom',
+    "application/pdf": '.pdf',
+    "text/tab-separated-values": '.tsv',
 }
