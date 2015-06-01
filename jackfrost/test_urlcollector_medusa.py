@@ -4,8 +4,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from django.contrib.auth import get_user_model
-from jackfrost.models import URLCollector
+from jackfrost.models import URLCollector, MedusaRenderer
 import pytest
+
+
+def test_medusa_renderer_repr():
+    assert repr(MedusaRenderer(cls=1)) == '<jackfrost.models.MedusaRenderer medusa_cls=1>'
 
 
 @pytest.mark.django_db

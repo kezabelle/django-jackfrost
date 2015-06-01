@@ -5,8 +5,12 @@ from __future__ import unicode_literals
 from __future__ import division
 from django.contrib.auth import get_user_model
 from django.contrib.sitemaps import Sitemap
-from jackfrost.models import URLCollector
+from jackfrost.models import URLCollector, SitemapRenderer
 import pytest
+
+
+def test_medusa_renderer_repr():
+    assert repr(SitemapRenderer(cls=1)) == '<jackfrost.models.SitemapRenderer sitemap_cls=1>'
 
 
 @pytest.mark.django_db
