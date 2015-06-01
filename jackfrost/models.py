@@ -28,7 +28,8 @@ from jackfrost import defaults
 from posixpath import normpath
 
 
-__all__ = ['URLBuilder', 'URLCollector', 'ModelRenderer']
+__all__ = ['URLBuilder', 'URLCollector', 'ModelRenderer', 'SitemapRenderer',
+           'MedusaRenderer']
 logger = logging.getLogger(__name__)
 
 

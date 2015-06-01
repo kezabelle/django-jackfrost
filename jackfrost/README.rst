@@ -36,6 +36,7 @@ models
 ^^^^^^
 
 Provides ``ModelRenderer``, ``URLCollector`` and ``URLBuilder``.
+Also provides compatibility shims ``SitemapRenderer``, and ``MedusaRenderer``.
 
 signals
 ^^^^^^^

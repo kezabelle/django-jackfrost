@@ -27,7 +27,6 @@ does have good test coverage, sooooo ...
 TODO
 ====
 
-- Read the URLs for existing medusa renderers to improve migration.
 - Figure out which ideas from `django-bakery`_ I'd like to approximate.
 - Provide feedback when running the management command. Currently there's none.
 - Allow for speeding up builds by sharding the URLs across multiple processes.
