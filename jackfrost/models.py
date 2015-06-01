@@ -6,7 +6,6 @@ from __future__ import division
 from collections import namedtuple
 import logging
 from mimetypes import guess_extension
-from django.core.urlresolvers import Resolver404
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -188,13 +187,11 @@ class URLBuilder(object):
 
     def build(self):
         builder_started.send(sender=self.__class__, builder=self)
-        built = set()
         for idx, url in enumerate(self.urls, start=0):
-            built.add(self.build_page(url=url, url_index=idx))
+            yield self.build_page(url=url, url_index=idx)
         for error in (401, 403, 404, 500):
-            built.add(self.build_error_page(error=error))
+            yield self.build_error_page(error=error)
         builder_finished.send(sender=self.__class__, builder=self)
-        return built
 
     def __call__(self):
         return self.build()

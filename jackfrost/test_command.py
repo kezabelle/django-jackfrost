@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
+from django.utils.six import StringIO
 from jackfrost.models import URLBuilder
 import pytest
 
@@ -68,9 +69,19 @@ def test_collectstaticsite_goes_ok():
     with pytest.raises(IOError):
         storage.open('jackfrost/content/a/b/index.html')
 
+    out = StringIO()
     with override_settings(JACKFROST_RENDERERS=[DummyRenderer], STATIC_ROOT=NEW_STATIC_ROOT):
-        output = call_command('collectstaticsite', interactive=False)
-    assert output == None
+        output = call_command('collectstaticsite', interactive=False, stdout=out)
+    assert output is None
+    # noinspection PySetFunctionToLiteral
+    assert set(out.getvalue().splitlines()) == set((
+        'Wrote jackfrost/content/a/index.html',
+        'Wrote jackfrost/content/a/b/index.html',
+        'Wrote jackfrost/401.html',
+        'Wrote jackfrost/403.html',
+        'Wrote jackfrost/404.html',
+        'Wrote jackfrost/500.html'
+    ))
 
     # redirects happened ...
     redirect_code = force_bytes('<meta http-equiv="refresh" content="3; '

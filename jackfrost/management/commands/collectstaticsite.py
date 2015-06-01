@@ -53,7 +53,8 @@ class Command(BaseCommand):
 
         builder = URLBuilder(urls=collected_urls)
         build_started.send(sender=builder.__class__)
-        built = builder()
+        for built_result in builder():
+            self.stdout.write("Wrote {}".format(built_result.storage_returned))
         build_finished.send(sender=builder.__class__)
 
 
