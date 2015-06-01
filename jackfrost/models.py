@@ -163,7 +163,6 @@ class URLBuilder(object):
         status = resp.status_code
         stored = None
         if status == 200:
-
             # calculate changed URL and redirects if necessary
             if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
                 previous_pages = resp.redirect_chain[:]
@@ -176,7 +175,11 @@ class URLBuilder(object):
                                              final_url=url)
 
             filename = self.get_target_filename(url=url, response=resp)
-            stored = self.write(name=filename, content=resp.content)
+            if resp.streaming is True:
+                response_content = b''.join(resp.streaming_content)
+            else:
+                response_content = resp.content
+            stored = self.write(name=filename, content=response_content)
             built_page.send(sender=self.__class__,
                             builder=self,
                             url=url,

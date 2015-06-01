@@ -110,7 +110,6 @@ def test_build_page():
     assert output.response.status_code == 200
     assert output.storage_returned == 'jackfrost/content/a/b/index.html'
     assert storage.open(output.storage_returned).readlines() == [b'content_b']
-    # remove(storage)
 
 
 def test_build_page_includes_redirections():
@@ -134,4 +133,14 @@ def test_build_page_includes_redirections():
     redirect2 = storage.open('jackfrost/r/a_b/index.html').read()
     assert redirect_code in redirect1
     assert redirect_code in redirect2
-    # remove(storage)
+
+
+def test_build_page_streaming_response():
+    builder = URLBuilder(urls=())
+    NEW_STATIC_ROOT = os.path.join(settings.STATIC_ROOT, 'urlbuilder', 'streaming_response')
+    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+        storage = builder.storage
+    output = builder.build_page(url=reverse('streamable'))
+    assert output.response.status_code == 200
+    assert output.storage_returned == 'jackfrost/streamable/index.html'
+    assert storage.open(output.storage_returned).readlines() == [b"helloI'mastream"]
