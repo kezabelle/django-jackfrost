@@ -21,6 +21,7 @@ def pytest_configure():
                     }
                 },
             INSTALLED_APPS=(
+                'django.contrib.sites',
                 'django.contrib.auth',
                 'django.contrib.admin',
                 'django.contrib.contenttypes',
@@ -38,6 +39,7 @@ def pytest_configure():
                 'django.middleware.clickjacking.XFrameOptionsMiddleware',
             ),
             BASE_DIR=HERE,
+            SITE_ID=1,
             STATIC_URL='/__s__/',
             STATIC_ROOT=os.path.join(HERE, 'test_collectstatic'),
             ROOT_URLCONF='test_urls',

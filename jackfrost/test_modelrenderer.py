@@ -110,7 +110,7 @@ def test_get_urls_prefers_jackfrost_variant():
 
 @pytest.mark.django_db
 def test_get_urls_uses_get_absolute_url_and_list_url():
-    class UserProxy(get_user_model()):
+    class UserListURLProxy(get_user_model()):
         def get_absolute_url(self):
             return '/not-jf/'
 
@@ -122,7 +122,7 @@ def test_get_urls_uses_get_absolute_url_and_list_url():
 
     class SubModelRenderer(ModelRenderer):
         def get_model(self):
-            return UserProxy
+            return UserListURLProxy
 
     get_user_model().objects.create()
     assert SubModelRenderer().get_urls() == frozenset(['/not-jf/', '/woo/'])

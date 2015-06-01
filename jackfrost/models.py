@@ -6,6 +6,7 @@ from __future__ import division
 from collections import namedtuple
 import logging
 from mimetypes import guess_extension
+from django.core.urlresolvers import Resolver404
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -25,7 +26,6 @@ from django.test.client import Client
 from django.utils import six
 from jackfrost import defaults
 from posixpath import normpath
-# from django.utils.six.moves.urllib.parse import urlparse
 
 
 __all__ = ['URLBuilder', 'URLCollector', 'ModelRenderer']
@@ -210,6 +210,10 @@ class URLCollector(object):
     def __init__(self, renderers=None):
         self.renderers = frozenset(self.get_renderers(renderers=renderers))
 
+    def is_sitemap(self, cls):
+        attrs = ('limit', 'protocol', 'items', 'get_urls')
+        return all(hasattr(cls, x) for x in attrs)
+
     def get_renderers(self, renderers=None):
         if renderers is None:
             from django.conf import settings
@@ -219,6 +223,9 @@ class URLCollector(object):
                 renderer_cls = import_string(renderer)
             else:
                 renderer_cls = renderer
+
+            if self.is_sitemap(cls=renderer_cls):
+                renderer_cls = SitemapRenderer(cls=renderer_cls)
             yield renderer_cls
 
     def get_urls(self):
@@ -291,3 +298,32 @@ class ModelRenderer(object):
 
     def __call__(self):
         return self.get_urls()
+
+
+class SitemapRenderer(object):
+    """
+    Given a standard Django Sitemap class, this exposes enough functionality
+    to be a renderer of the URLs represented by the Sitemap's location() method.
+    """
+    __slots__ = ('sitemap_cls',)
+    def __init__(self, cls):
+        self.sitemap_cls = cls
+
+    def __repr__(self):
+        return '<%(mod)s.%(cls)s sitemap_cls=%(medusa)r>' % {
+            'mod': self.__module__,
+            'cls': self.__class__.__name__,
+            'medusa': self.sitemap_cls,
+        }
+
+    def get_urls(self):
+        sitemap = self.sitemap_cls()
+        for page in sitemap.paginator.page_range:
+            for result in sitemap.get_urls(page=page):
+                if 'location' in result:
+                    urlparts = urlparse(result['location'])
+                    url = urlparts.path
+                    yield url
+
+    def __call__(self):
+        return frozenset(self.get_urls())
