@@ -6,6 +6,7 @@ from __future__ import division
 from collections import namedtuple
 import logging
 from mimetypes import guess_extension
+# from django.core.urlresolvers import set_script_prefix
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -209,6 +210,10 @@ class URLCollector(object):
     __slots__ = ('renderers',)
 
     def __init__(self, renderers=None):
+        # TODO: figure out prefix necessities
+        # url_prefix = getattr(settings, 'JACKFROST_SCRIPT_PREFIX', None)
+        # if url_prefix is not None:
+        #     set_script_prefix(url_prefix)
         self.renderers = frozenset(self.get_renderers(renderers=renderers))
 
     def is_sitemap(self, cls):
