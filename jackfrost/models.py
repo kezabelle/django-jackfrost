@@ -214,6 +214,10 @@ class URLCollector(object):
         attrs = ('limit', 'protocol', 'items', 'get_urls')
         return all(hasattr(cls, x) for x in attrs)
 
+    def is_medusa_renderer(self, cls):
+        attrs = ('get_paths', 'generate')
+        return all(hasattr(cls, x) for x in attrs)
+
     def get_renderers(self, renderers=None):
         if renderers is None:
             from django.conf import settings
@@ -226,6 +230,8 @@ class URLCollector(object):
 
             if self.is_sitemap(cls=renderer_cls):
                 renderer_cls = SitemapRenderer(cls=renderer_cls)
+            elif self.is_medusa_renderer(cls=renderer_cls):
+                renderer_cls = MedusaRenderer(cls=renderer_cls)
             yield renderer_cls
 
     def get_urls(self):
@@ -324,6 +330,26 @@ class SitemapRenderer(object):
                     urlparts = urlparse(result['location'])
                     url = urlparts.path
                     yield url
+
+    def __call__(self):
+        return frozenset(self.get_urls())
+
+
+class MedusaRenderer(object):
+    __slots__ = ('medusa_cls',)
+
+    def __init__(self, cls):
+        self.medusa_cls = cls
+
+    def __repr__(self):
+        return '<%(mod)s.%(cls)s medusa_cls=%(medusa)r>' % {
+            'mod': self.__module__,
+            'cls': self.__class__.__name__,
+            'medusa': self.medusa_cls,
+        }
+
+    def get_urls(self):
+        return self.medusa_cls().get_paths()
 
     def __call__(self):
         return frozenset(self.get_urls())
