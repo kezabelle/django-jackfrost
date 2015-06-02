@@ -12,6 +12,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import is_safe_url
+# noinspection PyUnresolvedReferences
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.six import BytesIO
 from jackfrost.signals import builder_started, builder_finished, built_page
@@ -73,7 +74,7 @@ class URLBuilder(object):
         storage = getattr(settings, 'JACKFROST_STORAGE',
                           defaults.JACKFROST_STORAGE)
         kwargs = getattr(settings, 'JACKFROST_STORAGE_KWARGS',
-                          defaults.JACKFROST_STORAGE_KWARGS)
+                         defaults.JACKFROST_STORAGE_KWARGS)
         storage_cls = import_string(storage)
         return storage_cls(**kwargs)
 
@@ -158,7 +159,6 @@ class URLBuilder(object):
                             storage_result=stored)
             return BuildPageResult(response=response, storage_returned=stored)
 
-
     def build_page(self, url, url_index=None):
         resp = self.client.get(url, follow=True)
         status = resp.status_code
@@ -216,12 +216,23 @@ class URLCollector(object):
         #     set_script_prefix(url_prefix)
         self.renderers = frozenset(self.get_renderers(renderers=renderers))
 
+    def __repr__(self):
+        return '<%(mod)s.%(cls)s renderers=%(renderers)r>' % {
+            'mod': self.__module__,
+            'cls': self.__class__.__name__,
+            'renderers': self.renderers,
+        }
+
     def is_sitemap(self, cls):
         attrs = ('limit', 'protocol', 'items', 'get_urls')
         return all(hasattr(cls, x) for x in attrs)
 
     def is_medusa_renderer(self, cls):
         attrs = ('get_paths', 'generate')
+        return all(hasattr(cls, x) for x in attrs)
+
+    def is_feed(self, cls):
+        attrs = ('get_feed', 'feed_type')
         return all(hasattr(cls, x) for x in attrs)
 
     def get_renderers(self, renderers=None):
@@ -238,6 +249,8 @@ class URLCollector(object):
                 renderer_cls = SitemapRenderer(cls=renderer_cls)
             elif self.is_medusa_renderer(cls=renderer_cls):
                 renderer_cls = MedusaRenderer(cls=renderer_cls)
+            elif self.is_feed(cls=renderer_cls):
+                renderer_cls = FeedRenderer(cls=renderer_cls)
             yield renderer_cls
 
     def get_urls(self):
@@ -318,6 +331,7 @@ class SitemapRenderer(object):
     to be a renderer of the URLs represented by the Sitemap's location() method.
     """
     __slots__ = ('sitemap_cls',)
+
     def __init__(self, cls):
         self.sitemap_cls = cls
 
@@ -359,3 +373,29 @@ class MedusaRenderer(object):
 
     def __call__(self):
         return frozenset(self.get_urls())
+
+
+class FeedRenderer(object):
+    __slots__ = ('feed_cls',)
+
+    def __init__(self, cls):
+        self.feed_cls = cls
+
+    def __repr__(self):
+        return '<%(mod)s.%(cls)s feed_cls=%(medusa)r>' % {
+            'mod': self.__module__,
+            'cls': self.__class__.__name__,
+            'medusa': self.feed_cls,
+        }
+
+    def get_urls(self):
+        feed = self.feed_cls()
+        # I have *NO* understanding of why the attribute has been renamed
+        # ... what magic is happening here?
+        for item in feed._Feed__get_dynamic_attr('items', None):
+            yield feed._Feed__get_dynamic_attr('item_link', item)
+
+    def __call__(self):
+        return frozenset(self.get_urls())
+
+
