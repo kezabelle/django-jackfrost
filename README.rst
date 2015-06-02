@@ -192,6 +192,13 @@ In theory, giving ``jackfrost`` the dotted path to a subclass of the `django-med
 the medusa renderer itself, without you doing anything. It will avoid going
 through the medusa rendering process, instead it'll go through mine.
 
+Reading from `Django RSS Feeds`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Giving ``jackfrost`` the dotted path to a subclass of a `Feed`_
+should do the right thing, and get the URLs out by asking the `Feed`_ for the
+``item_link`` for everything in ``items``, without you doing anything.
+
 Running the tests (89% coverage)
 --------------------------------
 
@@ -210,3 +217,5 @@ Given a complete clone::
 .. _sitemaps: https://docs.djangoproject.com/en/stable/ref/contrib/sitemaps/
 .. _Django sitemap: https://docs.djangoproject.com/en/stable/ref/contrib/sitemaps/
 .. _BaseStaticSiteRenderer: https://github.com/mtigas/django-medusa/blob/master/django_medusa/renderers/base.py
+.. _Django RSS Feeds: https://docs.djangoproject.com/en/stable/ref/contrib/syndication/
+.. _Feed: https://docs.djangoproject.com/en/stable/ref/contrib/syndication/#feed-class-reference
