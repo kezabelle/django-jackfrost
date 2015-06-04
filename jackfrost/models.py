@@ -324,10 +324,10 @@ class ModelRenderer(object):
                 yield obj.get_list_url()
 
     def get_urls(self):
-        return frozenset(self._get_urls())
+        return self._get_urls()
 
     def __call__(self):
-        return self.get_urls()
+        return frozenset(self.get_urls())
 
 
 class SitemapRenderer(object):
