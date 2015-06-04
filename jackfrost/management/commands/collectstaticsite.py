@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
+# noinspection PyUnresolvedReferences
 from django.utils.six.moves import input
+import sys
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
 from django.core.management import CommandError
+from django.utils.encoding import force_text
 from jackfrost.models import URLCollector
 from jackfrost.models import URLBuilder
 from jackfrost.signals import build_started
@@ -32,11 +36,16 @@ class Command(BaseCommand):
     def handle(self, **options):
         self.set_options(**options)
 
+        try:
+            collector = URLCollector()
+        except ImproperlyConfigured as e:
+            raise CommandError(force_text(e))
+
         message = ['\n']
         message.append(
             'You have requested to collect all defined `JACKFROST_RENDERERS` '
             'at the destination\n'
-            'location as specified in your settings via `JACKFROST_STORAGE`'
+            'location as specified in your settings via `JACKFROST_STORAGE`\n'
         )
         message.append(
             'Are you sure you want to do this?\n\n'
@@ -45,7 +54,6 @@ class Command(BaseCommand):
         if self.interactive and input(''.join(message)) != 'yes':
             raise CommandError("Collecting cancelled.")
 
-        collector = URLCollector()
         collected_urls = collector()
         if not collected_urls:
             raise CommandError("No URLs found after running all defined `JACKFROST_RENDERERS`")

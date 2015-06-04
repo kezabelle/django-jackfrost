@@ -7,6 +7,7 @@ from collections import namedtuple
 import logging
 from mimetypes import guess_extension
 # from django.core.urlresolvers import set_script_prefix
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -237,10 +238,14 @@ class URLCollector(object):
 
     def get_renderers(self, renderers=None):
         if renderers is None:
-            from django.conf import settings
-            renderers = settings.JACKFROST_RENDERERS
+            try:
+                renderers = settings.JACKFROST_RENDERERS
+            except AttributeError:
+                raise ImproperlyConfigured(
+                    "You have not set `JACKFROST_RENDERERS` in your "
+                    "project's settings")
         for renderer in renderers:
-            if isinstance(renderer, six.text_type):
+            if isinstance(renderer, six.string_types):
                 renderer_cls = import_string(renderer)
             else:
                 renderer_cls = renderer
