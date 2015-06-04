@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+<form action="{% url 'make_users' %}" method="POST" accept-charset="utf-8">
+    {% csrf_token %}
+    <input type="submit" value="Generate some users">
+</form>
+
+<ol>
+{% for user in page %}
+    <li>{{ user.username }}</li>
+{% endfor %}
+</ol>
+
+{% if page.paginator.num_pages > 1 %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page.has_previous %}
+            <a href="{% url 'users' page=page.previous_page_number %}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page.number }} of <a href="{% url 'users' page=page.paginator.num_pages %}">{{ page.paginator.num_pages }}</a>
+        </span>
+
+        {% if page.has_next %}
+            <a href="{% url 'users' page=page.next_page_number %}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% endif %}
+</body>
+</html>

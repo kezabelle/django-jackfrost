@@ -1,34 +1,95 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from random import randint
 from django.conf.urls import patterns, url
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.core.paginator import Paginator
+from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponse
+from django.http.response import Http404
 from django.http.response import StreamingHttpResponse
 from django.http.response import HttpResponseRedirect
+from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import render
+from django.utils.six.moves import range
+from django.utils.encoding import force_text
+from django.views.decorators.http import require_http_methods
+from jackfrost.models import ModelRenderer
 
 
+class UserListRenderer(ModelRenderer):
+    def get_urls(self):
+        for obj in get_user_model().objects.all():
+            yield reverse('show_user', kwargs={'pk': obj.pk})
+        paginator = Paginator(get_user_model().objects.all(), 5)
+        for page in paginator.page_range:
+            yield reverse('users', kwargs={'page': page})
+
+
+@require_http_methods(['POST'])
+def make_users(request):
+    min = randint(1, 500)
+    max = min + 5
+    users = [get_user_model().objects.get_or_create(username='user%d' % x)
+             for x in range(min, max)]
+    created = sum(1 for user in users if user[1])
+    messages.success(request, "Created %d users" % created)
+    return redirect('users')
+
+
+@require_http_methods(['GET'])
+def show_user(request, pk):
+    get_object_or_404(get_user_model(), pk=pk)
+    return HttpResponse(force_text(pk))
+
+
+@require_http_methods(['GET'])
+def users(request, page=1):
+    paginator = Paginator(get_user_model().objects.all(), 5)
+    try:
+        page = paginator.page(page)
+    except InvalidPage as e:
+        raise Http404("Invalid page number")
+
+    return render(request=request, template_name='users.html', context={
+        'paginator': paginator,
+        'page': page,
+    })
+
+
+@require_http_methods(['GET'])
 def streamer(request):
     return StreamingHttpResponse(['hello', "I'm", 'a', 'stream'])
 
+
+@require_http_methods(['GET'])
 def content_a(request):
     return HttpResponse('content_a')
 
 
+@require_http_methods(['GET'])
 def content_b(request):
     return HttpResponse('content_b')
 
 
+@require_http_methods(['GET'])
 def redirect_a(request):
     return HttpResponseRedirect(reverse('redirect_b'))
 
 
-
+@require_http_methods(['GET'])
 def redirect_b(request):
     return HttpResponseRedirect(reverse('content_b'))
 
 
 urlpatterns = patterns('',
+   url(r'^users/show/(?P<pk>\d+)$', show_user, name='show_user'),
+   url(r'^users/generate/$', make_users, name='make_users'),
+   url(r'^users/(?P<page>\d+)/$', users, name='users'),
+   url(r'^users/$', users, name='users'),
    url(r'^streamable/$', streamer, name='streamable'),
    url(r'^content/a/b/$', content_b, name='content_b'),
    url(r'^content/a/$', content_a, name='content_a'),

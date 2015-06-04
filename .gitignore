@@ -9,3 +9,4 @@ share/
 .tox
 test_collectstatic
 README.html
+db.sqlite3
