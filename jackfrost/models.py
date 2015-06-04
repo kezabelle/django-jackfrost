@@ -66,7 +66,7 @@ class URLBuilder(object):
                                                    ext=extension)
         else:
             filename = url
-        return normpath(join('jackfrost', filename))
+        return normpath(filename)
 
     def get_client(self):
         return Client()
@@ -113,9 +113,8 @@ class URLBuilder(object):
 
         try:
             result = render_to_string([
-                normpath('jackfrost/{}/301.html'.format(final_url)),
-                normpath('jackfrost/{}/301.html'.format(url)),
-                'jackfrost/301.html',
+                normpath('{}/301.html'.format(final_url)),
+                normpath('{}/301.html'.format(url)),
                 '301.html',
             ], {'this_url': url, 'next_url': final_url})
         except TemplateDoesNotExist:
@@ -139,7 +138,6 @@ class URLBuilder(object):
     def build_error_page(self, error):
         try:
             result = render_to_string([
-                'jackfrost/{error!s}.html'.format(error=error),
                 '{error!s}.html'.format(error=error),
             ], {'request_path': None})
         except TemplateDoesNotExist:
