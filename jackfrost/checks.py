@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from django.core.checks import register
 from django.core.checks import Warning
 from django.core.checks import Error
 from django.utils.six import string_types
@@ -11,7 +10,6 @@ except ImportError:  # pragma: no cover
     from django.utils.module_loading import import_by_path as import_string
 
 
-@register
 def check_renderers_setting(app_configs, **kwargs):
     from django.conf import settings
     errors = []
