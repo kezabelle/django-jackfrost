@@ -1,0 +1,4 @@
+include LICENSE
+recursive-include jackfrost *.html
+recursive-include jackfrost *.rst
+exclude .coveragerc conftest.py demo_project.py test_templates test_urls.py tox.ini
