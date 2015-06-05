@@ -10,3 +10,7 @@ share/
 test_collectstatic
 README.html
 db.sqlite3
+.coverage
+bash_history.txt
+dist/
+htmlcov/
