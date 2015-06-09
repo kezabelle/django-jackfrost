@@ -22,7 +22,7 @@
 
 <ol>
 {% for user in page %}
-    <li>{{ user.username }}</li>
+    <li><a href="{% url 'show_user' user.pk %}">{{ user.username }}</a></li>
 {% endfor %}
 </ol>
 
