@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 from django.utils.six import StringIO
-from jackfrost.models import URLBuilder
+from jackfrost.models import URLWriter
 import pytest
 #
 #
@@ -20,11 +20,11 @@ import pytest
 #     Removes everything in our static folder between tests,
 #     so that we get false positives
 #     """
-#     builder = URLBuilder(urls=())
+#     writer = URLBuilder(urls=())
 #     NEW_STATIC_ROOT = os.path.join(settings.STATIC_ROOT, 'test_collectstatic',
 #                                    'collectstaticsite')
 #     with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
-#         our_path = builder.storage.path('')
+#         our_path = writer.storage.path('')
 #     assert our_path.startswith(settings.STATIC_ROOT) is True
 #     assert our_path.startswith(settings.BASE_DIR) is True
 #     # As this happens on every test, it will sometimes raise
@@ -40,12 +40,12 @@ class DummyRenderer():
 
 
 def test_collectstaticsite_goes_ok():
-    builder = URLBuilder(urls=())
+    writer = URLWriter(data=None)
     NEW_STATIC_ROOT = os.path.join(settings.BASE_DIR, 'test_collectstatic',
                                    'collectstaticsite', 'goes_ok')
     rmtree(path=NEW_STATIC_ROOT, ignore_errors=True)
     with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
-        storage = builder.storage
+        storage = writer.storage
 
     with pytest.raises(IOError):
         storage.open('r/a/index.html')
@@ -61,14 +61,16 @@ def test_collectstaticsite_goes_ok():
         output = call_command('collectstaticsite', interactive=False, stdout=out)
     assert output is None
     # noinspection PySetFunctionToLiteral
-    assert set(out.getvalue().splitlines()) == set((
-        'Wrote content/a/index.html',
-        'Wrote content/a/b/index.html',
-        'Wrote 401.html',
-        'Wrote 403.html',
-        'Wrote 404.html',
-        'Wrote 500.html'
-    ))
+    assert set(out.getvalue().splitlines()) == set([
+        'Created content/a/index.html',
+        'Created r/a/index.html',
+        'Created r/a_b/index.html',
+        'Created content/a/b/index.html',
+        'Created 401.html',
+        'Created 403.html',
+        'Created 404.html',
+        'Created 500.html'
+    ])
 
     # redirects happened ...
     redirect_code = force_bytes('<meta http-equiv="refresh" content="3; '

@@ -3,13 +3,13 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves import input
+from itertools import chain
 import sys
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
 from django.core.management import CommandError
 from django.utils.encoding import force_text
-from jackfrost.models import URLCollector
-from jackfrost.models import URLBuilder
+from jackfrost.models import URLCollector, URLReader, URLWriter, ErrorReader
 from jackfrost.signals import build_started
 from jackfrost.signals import build_finished
 
@@ -57,12 +57,17 @@ class Command(BaseCommand):
         collected_urls = collector()
         if not collected_urls:
             raise CommandError("No URLs found after running all defined `JACKFROST_RENDERERS`")
-
-
-        builder = URLBuilder(urls=collected_urls)
+        reader = URLReader(urls=collected_urls)
+        reader_results = reader()
+        error_reader = ErrorReader()
+        error_results = error_reader()
+        builder = URLWriter(data=chain(reader_results, error_results))
         build_started.send(sender=builder.__class__)
         for built_result in builder():
-            self.stdout.write("Wrote {}".format(built_result.storage_returned))
+            if built_result.created:
+                self.stdout.write("Created {}".format(built_result.name))
+            elif built_result.modified:
+                self.stdout.write("Updated {}".format(built_result.name))
         build_finished.send(sender=builder.__class__)
 
 

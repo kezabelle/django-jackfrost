@@ -3,11 +3,16 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
+import hashlib
+import json
 import logging
 from mimetypes import guess_extension
 # from django.core.urlresolvers import set_script_prefix
+from datetime import datetime
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.base import ContentFile
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -15,9 +20,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import is_safe_url
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves.urllib.parse import urlparse
-from django.utils.six import BytesIO
-from jackfrost.signals import builder_started, builder_finished, built_page
-from os.path import splitext, join
+from jackfrost.signals import reader_started
+from jackfrost.signals import reader_finished
+from jackfrost.signals import writer_started
+from jackfrost.signals import writer_finished
+from jackfrost.signals import read_page
+from os.path import splitext
 try:
     from django.utils.module_loading import import_string
 except ImportError:  # pragma: no cover
@@ -33,27 +41,35 @@ from posixpath import normpath
 __all__ = ['URLBuilder', 'URLCollector', 'ModelRenderer', 'SitemapRenderer',
            'MedusaRenderer']
 logger = logging.getLogger(__name__)
+ReadResult = namedtuple('ReadResult', 'url filename status content')
+WriteResult = namedtuple('WriteResult', 'name created modified md5 storage_result')
 
 
-# BuildRedirectResult = namedtuple('BuildRedirectResult', 'response storage_returned')  # noqa
-BuildPageResult = namedtuple('BuildPageResult', 'response storage_returned')  # noqa
-# BuildResult = namedtuple('BuildResult', 'built_pages client content_types storage_backend')  # noqa
-
-class URLBuilder(object):
+class URLReader(object):
     """
     Given a list of URLs, presumably from a URLCollector, build them to files
     """
-    __slots__ = ('urls', '_storage', '_client', '_content_types')
+    __slots__ = ('urls', '_client', '_content_types')
 
     def __init__(self, urls):
-        self.urls = urls
-        self._storage = None
+        self.urls = tuple(urls)
         self._client = None
         self._content_types = None
 
-    def get_content_types_mapping(self):
-        return getattr(settings, 'JACKFROST_CONTENT_TYPES',
-                       defaults.JACKFROST_CONTENT_TYPES)
+    def __repr__(self):
+        num = len(self.urls)
+        top3 = self.urls[0:3]
+        urls_themselves = ', '.join('"%s"' % x for x in top3)
+        remaining = num - len(top3)
+        urls = '[%(top3)s'
+        if remaining > 0:
+            urls += ' ... %(more)d remaining'
+        urls += ']'
+        return '<%(mod)s.%(cls)s urls=%(urls)s>' % {
+            'mod': self.__module__,
+            'cls': self.__class__.__name__,
+            'urls': urls % {'top3': urls_themselves, 'more': remaining},
+        }
 
     def get_target_filename(self, url, response):
         url = url.lstrip('/')
@@ -68,39 +84,18 @@ class URLBuilder(object):
             filename = url
         return normpath(filename)
 
-    def get_client(self):
-        return Client()
-
-    def get_storage(self):
-        storage = getattr(settings, 'JACKFROST_STORAGE',
-                          defaults.JACKFROST_STORAGE)
-        kwargs = getattr(settings, 'JACKFROST_STORAGE_KWARGS',
-                         defaults.JACKFROST_STORAGE_KWARGS)
-        storage_cls = import_string(storage)
-        return storage_cls(**kwargs)
-
-    @property
-    def storage(self):
-        if self._storage is None:
-            self._storage = self.get_storage()
-        return self._storage
-
     @property
     def client(self):
         if self._client is None:
-            self._client = self.get_client()
+            self._client = Client()
         return self._client
 
     @property
     def content_types(self):
         if self._content_types is None:
-            self._content_types = self.get_content_types_mapping()
+            self._content_types = getattr(settings, 'JACKFROST_CONTENT_TYPES',
+                                          defaults.JACKFROST_CONTENT_TYPES)
         return self._content_types
-
-    def write(self, name, content):
-        if self.storage.exists(name=name):
-            self.storage.delete(name=name)
-        return self.storage.save(name=name, content=BytesIO(force_bytes(content)))  # noqa
 
     def build_redirect_page(self, url, final_url):
         urlparts = urlparse(url)
@@ -109,7 +104,7 @@ class URLBuilder(object):
         if not is_safe_url(url):
             logger.error("Unable to generate a redirecting page for {url} "
                          "because Django says it's not safe".format(url=url))
-            return BuildPageResult(response=None, storage_returned=None)
+            return None
 
         try:
             result = render_to_string([
@@ -121,47 +116,16 @@ class URLBuilder(object):
             logger.error("Unable to generate a redirecting page for {url} "
                          "because there is no 301 template".format(url=url),
                          exc_info=1)
-            return BuildPageResult(response=None, storage_returned=None)
+            return None
 
         response = HttpResponse(content=result, content_type='text/html')
         filename = self.get_target_filename(url=url, response=response)
-        stored = self.write(name=filename, content=result)
-        built_page.send(sender=self.__class__,
-                        builder=self,
-                        url=url,
-                        response=response,
-                        filename=filename,
-                        storage_result=stored)
+        return ReadResult(url=url, filename=filename, status=None,
+                          content=force_bytes(result))
 
-        return BuildPageResult(response=response, storage_returned=stored)
-
-    def build_error_page(self, error):
-        try:
-            result = render_to_string([
-                '{error!s}.html'.format(error=error),
-            ], {'request_path': None})
-        except TemplateDoesNotExist:
-            logger.error("Unable to generate a {error!s} page".format(error=error),  # noqa
-                         exc_info=1)
-            return BuildPageResult(response=None, storage_returned=None)
-        else:
-            response = HttpResponse(content=result)
-            filename = self.get_target_filename(
-                url='{error!s}.html'.format(error=error),
-                response=response)
-            stored = self.write(name=filename, content=result)
-            built_page.send(sender=self.__class__,
-                            builder=self,
-                            url=None,
-                            response=response,
-                            filename=filename,
-                            storage_result=stored)
-            return BuildPageResult(response=response, storage_returned=stored)
-
-    def build_page(self, url, url_index=None):
+    def build_page(self, url):
         resp = self.client.get(url, follow=True)
         status = resp.status_code
-        stored = None
         if status == 200:
             # calculate changed URL and redirects if necessary
             if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
@@ -171,33 +135,189 @@ class URLBuilder(object):
                 urlparts = urlparse(final_url)
                 url = urlparts.path
                 for previous_page, previous_status in previous_pages:
-                    self.build_redirect_page(url=previous_page,
-                                             final_url=url)
+                    yield self.build_redirect_page(url=previous_page,
+                                                   final_url=url)
 
             filename = self.get_target_filename(url=url, response=resp)
             if resp.streaming is True:
                 response_content = b''.join(resp.streaming_content)
             else:
                 response_content = resp.content
-            stored = self.write(name=filename, content=response_content)
-            built_page.send(sender=self.__class__,
-                            builder=self,
-                            url=url,
-                            response=resp,
-                            filename=filename,
-                            storage_result=stored)
-        return BuildPageResult(response=resp, storage_returned=stored)
+            read_page.send(sender=self.__class__,
+                           instance=self,
+                           url=url,
+                           response=resp,
+                           filename=filename)
+            yield ReadResult(url=url, filename=filename, status=status,
+                             content=force_bytes(response_content))
 
     def build(self):
-        builder_started.send(sender=self.__class__, builder=self)
+        reader_started.send(sender=self.__class__, instance=self)
         for idx, url in enumerate(self.urls, start=0):
-            yield self.build_page(url=url, url_index=idx)
-        for error in (401, 403, 404, 500):
-            yield self.build_error_page(error=error)
-        builder_finished.send(sender=self.__class__, builder=self)
+            for result in self.build_page(url=url):
+                yield result
+        reader_finished.send(sender=self.__class__, instance=self)
 
     def __call__(self):
-        return self.build()
+        return tuple(self.build())
+
+
+class ErrorReader(object):
+    __slots__ = ('reader',)
+
+    def __init__(self, reader_cls=None):
+        if reader_cls is None:
+            reader_cls = URLReader
+        self.reader = reader_cls(urls=())
+
+    def __call__(self):
+        reader_started.send(sender=self.__class__, builder=self)
+        for error in (401, 403, 404, 500):
+            yield self.build_error_page(error=error)
+        reader_finished.send(sender=self.__class__, builder=self)
+
+    def build_error_page(self, error):
+        try:
+            result = render_to_string([
+                '{error!s}.html'.format(error=error),
+            ], {'request_path': None})
+        except TemplateDoesNotExist:
+            logger.error("Unable to generate a {error!s} page".format(error=error),  # noqa
+                         exc_info=1)
+            return None
+
+        response = HttpResponse(content=result, status=error)
+        filename = self.reader.get_target_filename(
+            url='{error!s}.html'.format(error=error),
+            response=response)
+        read_page.send(sender=self.__class__,
+                       instance=self,
+                       url=None,
+                       response=response,
+                       filename=filename)
+        return ReadResult(url=None, filename=filename, status=error,
+                          content=result)
+
+
+ManifestWrite = namedtuple('ManifestWrite', 'existed deleted saved')
+
+
+class Manifest(object):
+    __slots__ = ('name', 'storage', '_loaded')
+
+    def __init__(self, storage):
+        self.name = 'jackfrost.json'
+        self.storage = storage
+        self._loaded = None
+
+    def read(self):
+        if self.storage.exists(self.name):
+            with self.storage.open(self.name) as manifest:
+                return manifest.read().decode('utf-8')
+        return None
+
+    def load(self):
+        result = self.read()
+        if result is not None:
+            return json.loads(result)
+        return {}
+
+    @property
+    def content(self):
+        if self._loaded is None:
+            self._loaded = self.load()
+        return self._loaded
+
+    def save(self, data):
+        file_exists = self.storage.exists(self.name)
+        deleted = None
+        if file_exists:
+            deleted = self.storage.delete(self.name)
+        self._loaded = json.dumps(data).encode('utf-8')
+        payload_file = ContentFile(content=self.content)
+        saved = self.storage.save(name=self.name, content=payload_file)
+        return ManifestWrite(
+            existed=file_exists,
+            deleted=deleted,
+            saved=saved
+        )
+
+    def has_changed(self, path, md5):
+        if path not in self.content:
+            return True
+        return self.content.get('md5', 'NOPE') == md5
+
+
+
+class URLWriter(object):
+    __slots__ = ('data', '_manifest', '_storage')
+
+    def __init__(self, data, manifest=None):
+        self.data = data
+        self._manifest = manifest
+        self._storage = None
+
+    def __repr__(self):
+        num = len(self.data)
+        top3 = self.data[0:3]
+        remaining = num - len(top3)
+        urls_themselves = ', '.join('"%s"' % x.url for x in top3)
+        urls = '(%(top3)s'
+        if remaining > 0:
+            urls += ' ... %(more)d remaining'
+        urls += ')'
+        return '<%(mod)s.%(cls)s data=%(urls)s>' % {
+            'mod': self.__module__,
+            'cls': self.__class__.__name__,
+            'urls': urls % {'top3': urls_themselves, 'more': remaining},
+        }
+
+
+    @property
+    def storage(self):
+        if self._storage is None:
+            storage = getattr(settings, 'JACKFROST_STORAGE',
+                          defaults.JACKFROST_STORAGE)
+            kwargs = getattr(settings, 'JACKFROST_STORAGE_KWARGS',
+                             defaults.JACKFROST_STORAGE_KWARGS)
+            storage_cls = import_string(storage)
+            self._storage = storage_cls(**kwargs)
+        return self._storage
+
+    def write(self, data):
+        name = data.filename
+        content = force_bytes(data.content)
+        content_hash = hashlib.md5(content).hexdigest()
+        content_io = ContentFile(content)
+
+        #manifest.has_changed(path=name, md5=content_has)
+
+        file_exists = self.storage.exists(name=name)
+        if file_exists:
+            self.storage.delete(name=name)
+        result = self.storage.save(name=name, content=content_io)
+        return WriteResult(name=name, created=not file_exists, modified=True,
+                           md5=content_hash, storage_result=result)
+
+    def build(self):
+        writer_started.send(sender=self.__class__, instance=self)
+        # manifest = OrderedDict()
+        # manifest['__metadata__'] = {
+        #     'version': '0.1.0',
+        #     'date_started': datetime.utcnow()
+        # }
+        for idx, data in enumerate(self.data, start=0):
+            write_result = self.write(data)
+            # manifest[write_result.name] = write_result._asdict()
+            yield write_result
+        # manifest['__metadata__']['date_finished'] = datetime.utcnow()
+        # manifest_json = json.dumps(manifest, indent=4, sort_keys=True,
+        #                            cls=DjangoJSONEncoder)
+        # self.write(Manifest())
+        writer_finished.send(sender=self.__class__, instance=self)
+
+    def __call__(self):
+        return tuple(self.build())
 
 
 class URLCollector(object):

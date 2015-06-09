@@ -4,9 +4,16 @@ build_started = Signal(providing_args=())
 
 build_finished = Signal(providing_args=())
 
-builder_started = Signal(providing_args=('builder'))
+reader_started = Signal(providing_args=('instance',))
 
-builder_finished = Signal(providing_args=('builder'))
+reader_finished = Signal(providing_args=('instance',))
+
+read_page = Signal(providing_args=('instance', 'url', 'response', 'filename'))
+
+writer_started = Signal(providing_args=('instance',))
+
+
+writer_finished = Signal(providing_args=('instance',))
 
 built_page = Signal(providing_args=('builder', 'url', 'response', 'filename',
                                     'storage_result'))
