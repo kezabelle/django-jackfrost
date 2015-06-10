@@ -4,14 +4,44 @@ from __future__ import unicode_literals
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves import input
 from itertools import chain
+import multiprocessing
+from datetime import datetime
 import sys
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
 from django.core.management import CommandError
+from django.core.management.base import OutputWrapper
 from django.utils.encoding import force_text
+# noinspection PyUnresolvedReferences
+from django.utils.six.moves import range
 from jackfrost.models import URLCollector, URLReader, URLWriter, ErrorReader
 from jackfrost.signals import build_started
 from jackfrost.signals import build_finished
+
+
+def multiprocess_reader(urls, stdout=None):
+    stdout = OutputWrapper(stdout or sys.stdout)
+    result = URLReader(urls=urls)()
+    out = set()
+    for built_result in result:
+        out.add(built_result)
+        stdout.write("Read {}".format(built_result.url))
+    return out
+
+
+def multiprocess_writer(data, stdout=None):
+    stdout = OutputWrapper(stdout or sys.stdout)
+    result = URLWriter(data=data)()
+    out = set()
+    for built_result in result:
+        out.add(built_result)
+        if built_result.created:
+            stdout.write("Created {}".format(built_result.name))
+        elif built_result.modified:
+            stdout.write("Updated {}".format(built_result.name))
+    return out
+
+
 
 
 class Command(BaseCommand):
@@ -25,6 +55,9 @@ class Command(BaseCommand):
         parser.add_argument('--noinput',
             action='store_false', dest='interactive', default=True,
             help="Do NOT prompt the user for input of any kind.")
+        parser.add_argument('--processes',
+            action='store', dest='processes', default=1, type=int,
+            help="Do NOT prompt the user for input of any kind.")
 
     def set_options(self, **options):
         """
@@ -32,10 +65,11 @@ class Command(BaseCommand):
         """
         self.interactive = options['interactive']
         self.verbosity = options['verbosity']
+        self.processes = options['processes']
+        self.multiprocess = options['processes'] > 1
 
     def handle(self, **options):
         self.set_options(**options)
-
         try:
             collector = URLCollector()
         except ImproperlyConfigured as e:
@@ -57,17 +91,66 @@ class Command(BaseCommand):
         collected_urls = collector()
         if not collected_urls:
             raise CommandError("No URLs found after running all defined `JACKFROST_RENDERERS`")
-        reader = URLReader(urls=collected_urls)
-        reader_results = reader()
+
+
+        build_started.send(sender=self.__class__)
+        reading_started = datetime.utcnow()
+
+        if self.multiprocess:
+            reader_pool = multiprocessing.Pool(processes=self.processes)
+            collected_urls = tuple(collected_urls)
+            new_urls = tuple(collected_urls[i::self.processes]
+                             for i in range(0, self.processes))
+            read = reader_pool.map(multiprocess_reader, new_urls)
+            reader_pool.close()
+            reader_pool.join()
+            read_results = tuple(chain.from_iterable(read))
+        else:
+            read_results = multiprocess_reader(urls=collected_urls,
+                                               stdout=self.stdout._out)
+
+        reading_finished = datetime.utcnow()
+        reading_duration = reading_finished - reading_started
+
+        self.stdout.write(
+            self.style.HTTP_REDIRECT("Read {num} URLs in {time} seconds".format(
+                time=reading_duration.total_seconds(), num=len(read_results),
+            ))
+        )
+
+        writing_started = datetime.utcnow()
+        if self.multiprocess:
+            writer_pool = multiprocessing.Pool(self.processes)
+            # noinspection PyUnboundLocalVariable
+            written = writer_pool.map(multiprocess_writer, read)
+            writer_pool.close()
+            writer_pool.join()
+            write_results = chain.from_iterable(written)
+        else:
+            write_results = multiprocess_writer(data=read_results,
+                                                stdout=self.stdout._out)
+
         error_reader = ErrorReader()
         error_results = error_reader()
-        builder = URLWriter(data=chain(reader_results, error_results))
-        build_started.send(sender=builder.__class__)
-        for built_result in builder():
-            if built_result.created:
-                self.stdout.write("Created {}".format(built_result.name))
-            elif built_result.modified:
-                self.stdout.write("Updated {}".format(built_result.name))
-        build_finished.send(sender=builder.__class__)
+        written_errors = multiprocess_writer(data=error_results,
+                                             stdout=self.stdout._out)
+        
+        writing_finished = datetime.utcnow()
+        writing_duration = writing_finished - writing_started
+
+        all_written = tuple(chain(write_results, written_errors))
+
+        self.stdout.write(
+            self.style.HTTP_REDIRECT("Wrote {num} files in {time} seconds".format(
+                time=writing_duration.total_seconds(), num=len(all_written),
+            ))
+        )
+        complete_duration = writing_finished - reading_started
+        self.stdout.write(
+            self.style.HTTP_REDIRECT("Took {time} seconds total".format(
+                time=complete_duration.total_seconds()
+            ))
+        )
+        build_finished.send(sender=self.__class__)
 
 

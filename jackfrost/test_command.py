@@ -60,17 +60,15 @@ def test_collectstaticsite_goes_ok():
     with override_settings(JACKFROST_RENDERERS=[DummyRenderer], STATIC_ROOT=NEW_STATIC_ROOT):
         output = call_command('collectstaticsite', interactive=False, stdout=out)
     assert output is None
-    # noinspection PySetFunctionToLiteral
-    assert set(out.getvalue().splitlines()) == set([
-        'Created content/a/index.html',
-        'Created r/a/index.html',
-        'Created r/a_b/index.html',
-        'Created content/a/b/index.html',
-        'Created 401.html',
-        'Created 403.html',
-        'Created 404.html',
-        'Created 500.html'
-    ])
+    stdout = out.getvalue().splitlines()
+    assert 'Created content/a/index.html' in stdout
+    assert 'Created r/a/index.html' in stdout
+    assert 'Created r/a_b/index.html' in stdout
+    assert 'Created content/a/b/index.html' in stdout
+    assert 'Created 401.html' in stdout
+    assert 'Created 403.html' in stdout
+    assert 'Created 404.html' in stdout
+    assert 'Created 500.html' in stdout
 
     # redirects happened ...
     redirect_code = force_bytes('<meta http-equiv="refresh" content="3; '

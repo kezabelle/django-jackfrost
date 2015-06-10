@@ -53,7 +53,7 @@ def test_get_client():
 
 def test_streaming_response():
     reader = URLReader(urls=[reverse('streamable')])
-    output = reader()[0]
+    output = tuple(reader())[0]
     assert output.status == 200
     assert output.filename == 'streamable/index.html'
     assert output.content == b"helloI'mastream"

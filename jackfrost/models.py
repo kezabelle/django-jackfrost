@@ -159,7 +159,7 @@ class URLReader(object):
         reader_finished.send(sender=self.__class__, instance=self)
 
     def __call__(self):
-        return tuple(self.build())
+        return self.build()
 
 
 class ErrorReader(object):
@@ -317,7 +317,7 @@ class URLWriter(object):
         writer_finished.send(sender=self.__class__, instance=self)
 
     def __call__(self):
-        return tuple(self.build())
+        return self.build()
 
 
 class URLCollector(object):
