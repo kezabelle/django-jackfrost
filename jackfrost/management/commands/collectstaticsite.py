@@ -6,6 +6,7 @@ from django.utils.six.moves import input
 from itertools import chain
 import multiprocessing
 from datetime import datetime
+from optparse import make_option
 import sys
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
@@ -48,8 +49,18 @@ class Command(BaseCommand):
     help = "Collect Django views into a static folder beneath a static files storage"  # noqa
     requires_system_checks = False
 
-    def __init__(self, *args, **kwargs):
-        super(Command, self).__init__(*args, **kwargs)
+    option_list = BaseCommand.option_list + (
+        make_option('--noinput',
+            action='store_false', dest='interactive', default=True,
+            help="Do NOT prompt the user for input of any kind."),
+        make_option('--processes',
+            action='store', dest='processes', default=1, type=int,
+            help="Number of processes to spawn"),
+    )
+
+    @property
+    def use_argparse(self):
+        return True
 
     def add_arguments(self, parser):
         parser.add_argument('--noinput',
@@ -57,7 +68,7 @@ class Command(BaseCommand):
             help="Do NOT prompt the user for input of any kind.")
         parser.add_argument('--processes',
             action='store', dest='processes', default=1, type=int,
-            help="Do NOT prompt the user for input of any kind.")
+            help="Number of processes to spawn")
 
     def set_options(self, **options):
         """

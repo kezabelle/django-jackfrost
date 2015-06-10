@@ -14,6 +14,7 @@ from django.http.response import StreamingHttpResponse
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
+# noinspection PyUnresolvedReferences
 from django.utils.six.moves import range
 from django.utils.encoding import force_text
 from django.views.decorators.http import require_http_methods
@@ -54,7 +55,7 @@ def users(request, page=1):
     except InvalidPage as e:
         raise Http404("Invalid page number")
 
-    return render(request=request, template_name='users.html', context={
+    return render(request, 'users.html', {
         'paginator': paginator,
         'page': page,
     })

@@ -73,7 +73,7 @@ def test_get_urls_skips_because_cannot_build():
 
 @pytest.mark.django_db
 def test_get_urls_can_build():
-    class UserProxy(get_user_model()):
+    class UserProxy2(get_user_model()):
         def jackfrost_can_build(self):
             return True
 
@@ -82,7 +82,7 @@ def test_get_urls_can_build():
 
     class SubModelRenderer(ModelRenderer):
         def get_model(self):
-            return UserProxy
+            return UserProxy2
 
     get_user_model().objects.create()
     assert SubModelRenderer()() == frozenset()
@@ -90,7 +90,7 @@ def test_get_urls_can_build():
 
 @pytest.mark.django_db
 def test_get_urls_prefers_jackfrost_variant():
-    class UserProxy(get_user_model()):
+    class UserProxy3(get_user_model()):
         def jackfrost_absolute_url(self):
             return '/jf/'
 
@@ -102,7 +102,7 @@ def test_get_urls_prefers_jackfrost_variant():
 
     class SubModelRenderer(ModelRenderer):
         def get_model(self):
-            return UserProxy
+            return UserProxy3
 
     get_user_model().objects.create()
     assert SubModelRenderer()() == frozenset(['/jf/'])
