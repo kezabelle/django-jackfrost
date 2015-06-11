@@ -303,7 +303,7 @@ class URLWriter(object):
         writer_started.send(sender=self.__class__, instance=self)
         # manifest = OrderedDict()
         # manifest['__metadata__'] = {
-        #     'version': '0.1.0',
+        #     'version': '0.2.0',
         #     'date_started': datetime.utcnow()
         # }
         for idx, data in enumerate(self.data, start=0):

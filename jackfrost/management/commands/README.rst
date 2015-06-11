@@ -1,4 +1,4 @@
-commands for  0.1.0
+commands for  0.2.0
 ===================
 
 All the management commands provided.

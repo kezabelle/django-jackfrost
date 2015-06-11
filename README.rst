@@ -1,4 +1,4 @@
-django-jackfrost 0.1.0
+django-jackfrost 0.2.0
 ======================
 
 .. image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=master
