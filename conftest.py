@@ -34,7 +34,7 @@ def pytest_configure():
                 'django.middleware.common.CommonMiddleware',
                 'django.middleware.csrf.CsrfViewMiddleware',
                 'django.contrib.auth.middleware.AuthenticationMiddleware',
-                'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+                # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
                 'django.contrib.messages.middleware.MessageMiddleware',
                 'django.middleware.clickjacking.XFrameOptionsMiddleware',
             ),
@@ -45,7 +45,10 @@ def pytest_configure():
             ROOT_URLCONF='test_urls',
             TEMPLATE_DIRS=(
                 os.path.join(HERE, 'test_templates'),
-            )
+            ),
+            PASSWORD_HASHERS=(
+                'django.contrib.auth.hashers.MD5PasswordHasher',
+            ),
         )
     if hasattr(django, 'setup'):
         django.setup()

@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+import django
 from django.contrib.auth import get_user_model
 from django.test.testcases import TransactionTestCase
 from jackfrost.models import ModelRenderer
@@ -71,6 +72,8 @@ def test_get_urls_skips_because_cannot_build():
     assert SubModelRenderer()() == frozenset()
 
 
+@pytest.mark.xfail(django.VERSION[:2] < (1,7),
+                   reason="old Django's User has a get_absolute_url method ...")
 @pytest.mark.django_db
 def test_get_urls_can_build():
     class UserProxy2(get_user_model()):
