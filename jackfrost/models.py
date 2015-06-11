@@ -38,8 +38,8 @@ from jackfrost import defaults
 from posixpath import normpath
 
 
-__all__ = ['URLBuilder', 'URLCollector', 'ModelRenderer', 'SitemapRenderer',
-           'MedusaRenderer']
+__all__ = ['URLCollector', 'URLReader', 'ErrorReader', 'URLWriter',
+           'ModelRenderer', 'SitemapRenderer', 'MedusaRenderer', 'FeedRenderer']
 logger = logging.getLogger(__name__)
 ReadResult = namedtuple('ReadResult', 'url filename status content')
 WriteResult = namedtuple('WriteResult', 'name created modified md5 storage_result')

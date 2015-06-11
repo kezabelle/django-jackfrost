@@ -28,8 +28,6 @@ TODO
 ====
 
 - Figure out which ideas from `django-bakery`_ I'd like to approximate.
-- Provide feedback when running the management command. Currently there's none.
-- Allow for speeding up builds by sharding the URLs across multiple processes.
 
 Dependencies
 ============
@@ -56,15 +54,16 @@ Put ``jackfrost`` into your ``INSTALLED_APPS``::
 
 which will enable the management command::
 
-    python manage.py collectstaticsite
+    python manage.py collectstaticsite --processes=N
 
 
 Configuration & usage
 ---------------------
 
 Set ``JACKFROST_STORAGE`` to whatever storage backend you'd like to use, in
-your project's settings. By default,
-``django.contrib.staticfiles.storage.StaticFilesStorage`` will be used.
+your project's settings. By default, a subclass of
+``django.contrib.staticfiles.storage.StaticFilesStorage`` which puts output into
+a ``jackfrost`` directory will be used.
 
 If your storage backend needs any arguments that can't be gleaned from individual
 settings, you can set ``JACKFROST_STORAGE_KWARGS`` to a dictionary of
@@ -132,12 +131,14 @@ go totally off-reservation.
 Listening for renders
 ^^^^^^^^^^^^^^^^^^^^^
 
-There are 5 signals in total:
+There are 7 signals in total:
 
 * ``build_started`` is fired when the management command is run.
-* ``builder_started`` is fired when a ``URLBuilder`` instance begins working.
-* ``built_page`` is fired just after a page is written to the storage backend.
-* ``builder_finished`` is fired when the ``URLBuilder`` completes
+* ``reader_started`` is fired when a ``URLReader`` instance begins working.
+* ``read_page`` is fired when a ``URLReader`` successfully gets a URL's content.
+* ``reader_finished`` is fired when a ``URLReader`` instance completes.
+* ``writer_started`` is fired when a ``URLWriter`` instance begins working.
+* ``writer_finished`` is fired when the ``URLWriter`` completes
 * ``build_finished`` fires at the end of the management command.
 
 Rendering on model change
@@ -199,7 +200,7 @@ Giving ``jackfrost`` the dotted path to a subclass of a `Feed`_
 should do the right thing, and get the URLs out by asking the `Feed`_ for the
 ``item_link`` for everything in ``items``, without you doing anything.
 
-Running the tests (89% coverage)
+Running the tests (76% coverage)
 --------------------------------
 
 Given a complete clone::

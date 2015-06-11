@@ -12,8 +12,4 @@ read_page = Signal(providing_args=('instance', 'url', 'response', 'filename'))
 
 writer_started = Signal(providing_args=('instance',))
 
-
 writer_finished = Signal(providing_args=('instance',))
-
-built_page = Signal(providing_args=('builder', 'url', 'response', 'filename',
-                                    'storage_result'))

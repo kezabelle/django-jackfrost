@@ -20,10 +20,13 @@ The building happens in discrete phases:
 
   * By default, the list of renderers is taken from ``settings.JACKFROST_RENDERERS``
 
-* A ``URLBuilder`` takes a set of URLs, and writes each URL's response content
-  to a storage backend.
+* A ``URLReader`` takes a set of URLs, and reads each URL to get it's content,
+  which it keeps in memory to provide to the ``URLWriter``
 
-  * By default, the backend is the standard Django `staticfiles`_ one.
+* A ``URLWriter`` takes a set of URLs and their content, and writes each a storage backend.
+
+  * By default, the backend is a subclass of the standard
+    Django `staticfiles`_ one.
   * It can be changed by setting ``JACKFROST_STORAGE`` to the storage backend
     of your choice.
   * It does not need to be the same backend as either ``DEFAULT_FILE_STORAGE``
@@ -35,14 +38,16 @@ Package layout
 models
 ^^^^^^
 
-Provides ``ModelRenderer``, ``URLCollector`` and ``URLBuilder``.
-Also provides compatibility shims ``SitemapRenderer``, and ``MedusaRenderer``.
+Provides ``ModelRenderer``, ``URLCollector``, ``URLReader`` and ``URLWriter``.
+Also provides compatibility shims ``SitemapRenderer``, ``FeedRenderer``
+and ``MedusaRenderer``.
 
 signals
 ^^^^^^^
 
-Provides ``build_started``, ``build_finished``, ``builder_started``,
-``builder_finished`` and ``built_page`` which are fired at various, hopefully
+Provides ``build_started``, ``build_finished``, ``reader_started``,
+``reader_finished``, ``builder_started``, ``writer_started``,
+``writer_finished``, and ``read_page`` which are fired at various, hopefully
 obvious, points.
 
 utils
