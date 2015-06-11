@@ -10,7 +10,22 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 from jackfrost.models import URLReader
+from jackfrost.models import ReadResult
 from jackfrost.models import URLWriter
+
+
+def test_repr_short():
+    reads = [ReadResult(url='/%d/' % x, filename=None, status=None, content=None)
+             for x in range(2)]
+    reader = URLWriter(data=reads)
+    assert repr(reader) == '<jackfrost.models.URLWriter data=("/0/", "/1/")>'
+
+
+def test_repr_long():
+    reads = [ReadResult(url='/%d/' % x, filename=None, status=None, content=None)
+             for x in range(4)]
+    reader = URLWriter(data=reads)
+    assert repr(reader) == '<jackfrost.models.URLWriter data=("/0/", "/1/", "/2/" ... 1 remaining)>'  # noqa
 
 
 def test_get_storage():

@@ -19,6 +19,16 @@ def test_get_content_types_mapping():
     assert reader.content_types == defaults.JACKFROST_CONTENT_TYPES
 
 
+def test_repr_short():
+    reader = URLReader(urls=('/a/', '/b/'))
+    assert repr(reader) == '<jackfrost.models.URLReader urls=["/a/", "/b/"]>'
+
+
+def test_repr_long():
+    reader = URLReader(urls=('/a/', '/b/', '/c/', '/d/', '/e/'))
+    assert repr(reader) == '<jackfrost.models.URLReader urls=["/a/", "/b/", "/c/" ... 2 remaining]>'  # noqa
+
+
 def test_get_content_types_mapping_overrides():
     reader = URLReader(urls=())
     with override_settings(JACKFROST_CONTENT_TYPES={}):

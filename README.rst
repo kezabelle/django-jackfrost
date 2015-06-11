@@ -200,7 +200,7 @@ Giving ``jackfrost`` the dotted path to a subclass of a `Feed`_
 should do the right thing, and get the URLs out by asking the `Feed`_ for the
 ``item_link`` for everything in ``items``, without you doing anything.
 
-Running the tests (76% coverage)
+Running the tests (85% coverage)
 --------------------------------
 
 Given a complete clone::

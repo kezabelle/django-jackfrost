@@ -107,7 +107,7 @@ class Command(BaseCommand):
         build_started.send(sender=self.__class__)
         reading_started = datetime.utcnow()
 
-        if self.multiprocess:
+        if self.multiprocess:  # pragma: no cover
             reader_pool = multiprocessing.Pool(processes=self.processes)
             collected_urls = tuple(collected_urls)
             new_urls = tuple(collected_urls[i::self.processes]
@@ -130,7 +130,7 @@ class Command(BaseCommand):
         )
 
         writing_started = datetime.utcnow()
-        if self.multiprocess:
+        if self.multiprocess:  # pragma: no cover
             writer_pool = multiprocessing.Pool(self.processes)
             # noinspection PyUnboundLocalVariable
             written = writer_pool.map(multiprocess_writer, read)

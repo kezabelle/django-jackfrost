@@ -125,31 +125,31 @@ class URLReader(object):
 
     def build_page(self, url):
         resp = self.client.get(url, follow=True)
-        status = resp.status_code
-        if status == 200:
-            # calculate changed URL and redirects if necessary
-            if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
-                previous_pages = resp.redirect_chain[:]
-                previous_pages.insert(0, (url, 301))  # hack to put in *this* url.
-                final_url = previous_pages.pop()[0]
-                urlparts = urlparse(final_url)
-                url = urlparts.path
-                for previous_page, previous_status in previous_pages:
-                    yield self.build_redirect_page(url=previous_page,
-                                                   final_url=url)
+        assert resp.status_code == 200, "Invalid response"
 
-            filename = self.get_target_filename(url=url, response=resp)
-            if resp.streaming is True:
-                response_content = b''.join(resp.streaming_content)
-            else:
-                response_content = resp.content
-            read_page.send(sender=self.__class__,
-                           instance=self,
-                           url=url,
-                           response=resp,
-                           filename=filename)
-            yield ReadResult(url=url, filename=filename, status=status,
-                             content=force_bytes(response_content))
+        # calculate changed URL and redirects if necessary
+        if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
+            previous_pages = resp.redirect_chain[:]
+            previous_pages.insert(0, (url, 301))  # hack to put in *this* url.
+            final_url = previous_pages.pop()[0]
+            urlparts = urlparse(final_url)
+            url = urlparts.path
+            for previous_page, previous_status in previous_pages:
+                yield self.build_redirect_page(url=previous_page,
+                                               final_url=url)
+
+        filename = self.get_target_filename(url=url, response=resp)
+        if resp.streaming is True:
+            response_content = b''.join(resp.streaming_content)
+        else:
+            response_content = resp.content
+        read_page.send(sender=self.__class__,
+                       instance=self,
+                       url=url,
+                       response=resp,
+                       filename=filename)
+        yield ReadResult(url=url, filename=filename, status=resp.status_code,
+                         content=force_bytes(response_content))
 
     def build(self):
         reader_started.send(sender=self.__class__, instance=self)
