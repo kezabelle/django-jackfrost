@@ -46,7 +46,7 @@ signals
 ^^^^^^^
 
 Provides ``build_started``, ``build_finished``, ``reader_started``,
-``reader_finished``, ``builder_started``, ``writer_started``,
+``reader_finished``, ``writer_started``,
 ``writer_finished``, and ``read_page`` which are fired at various, hopefully
 obvious, points.
 
