@@ -86,6 +86,50 @@ In theory, I don't care whether your ``JACKFROST_RENDERERS`` are functions
 or classes; if it's a class it must implement ``__call__``. Either way,
 it should, when called, return a number of URL paths to be consumed.
 
+
+Renderers for models
+^^^^^^^^^^^^^^^^^^^^
+
+If you have a model which has a ``get_absolute_url`` method, your renderer
+can be as simple as::
+
+    from jackfrost.models import ModelRenderer
+
+    class MyModelRenderer(ModelRenderer):
+        def get_model(self):
+            return MyModel
+
+If you need to customise the queryset, there is a ``get_queryset`` method
+which can be replaced. There is also a ``get_urls`` method, if you need to
+go totally off-reservation.
+
+
+Reading from `sitemaps`_
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Giving ``jackfrost`` the dotted path to a standard `Django sitemap`_ as
+one of the ``JACKFROST_RENDERERS`` should do the right thing, and get the
+URLs out of the sitemap itself without you needing to do anything or write
+a new renderer.
+
+
+Reading from `django-medusa`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In theory, giving ``jackfrost`` the dotted path to a subclass of the `django-medusa`_
+`BaseStaticSiteRenderer`_ should do the right thing, and get the URLs out of
+the medusa renderer itself, without you doing anything. It will avoid going
+through the medusa rendering process, instead it'll go through mine.
+
+
+Reading from `Django RSS Feeds`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Giving ``jackfrost`` the dotted path to a subclass of a `Feed`_
+should do the right thing, and get the URLs out by asking the `Feed`_ for the
+``item_link`` for everything in ``items``, without you doing anything.
+
+
 Writing a renderer
 ^^^^^^^^^^^^^^^^^^
 
@@ -109,23 +153,6 @@ Renderers may also be classes::
 
         def __call__(self):
             yield reverse('app:name')
-
-
-Renderers for models
-^^^^^^^^^^^^^^^^^^^^
-
-If you have a model which has a ``get_absolute_url`` method, your renderer
-can be as simple as::
-
-    from jackfrost.models import ModelRenderer
-
-    class MyModelRenderer(ModelRenderer):
-        def get_model(self):
-            return MyModel
-
-If you need to customise the queryset, there is a ``get_queryset`` method
-which can be replaced. There is also a ``get_urls`` method, if you need to
-go totally off-reservation.
 
 
 Listening for renders
@@ -177,28 +204,6 @@ Additionally, static pages for 401, 403, 404 and 500 errors will be built
 from their respective templates, if they exist. Useful if you want to wire
 up Apache ``ErrorDocument`` directives or whatever.
 
-Reading from `sitemaps`_
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Giving ``jackfrost`` the dotted path to a standard `Django sitemap`_ as
-one of the ``JACKFROST_RENDERERS`` should do the right thing, and get the
-URLs out of the sitemap itself without you needing to do anything or write
-a new renderer.
-
-Reading from `django-medusa`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In theory, giving ``jackfrost`` the dotted path to a subclass of the `django-medusa`_
-`BaseStaticSiteRenderer`_ should do the right thing, and get the URLs out of
-the medusa renderer itself, without you doing anything. It will avoid going
-through the medusa rendering process, instead it'll go through mine.
-
-Reading from `Django RSS Feeds`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Giving ``jackfrost`` the dotted path to a subclass of a `Feed`_
-should do the right thing, and get the URLs out by asking the `Feed`_ for the
-``item_link`` for everything in ``items``, without you doing anything.
 
 Running the tests (85% coverage)
 --------------------------------
