@@ -59,6 +59,7 @@ setup(
         'pytest-random>=0.2',
         'pytest-sugar>=0.4.0',
         'pytest-spec>=0.2.24',
+        'celery>=3.1.18',
     ),
     cmdclass = {'test': PyTest},
     # setup_requires=['pytest>=2.6.4'],
