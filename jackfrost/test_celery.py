@@ -29,14 +29,14 @@ def test_building_a_single_item():
             ReadResult(url='/content/a/',
                        filename='content/a/index.html',
                        status=200,
-                       content='content_a'),
+                       content=b'content_a'),
         ),
         (
             WriteResult(name='content/a/index.html',
                         created=True,
                         modified=True,
                         md5='95792493d34debeaee4af352d18f1c76',
-                        storage_result=u'content/a/index.html'),
+                        storage_result='content/a/index.html'),
         )
     )
 
