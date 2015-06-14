@@ -46,7 +46,7 @@ LONG_DESCRIPTION = "\r\n\r\n----\r\n\r\n".join(make_readme(HERE))
 
 setup(
     name='django-jackfrost',
-    version='0.2.0',
+    version='0.2.1',
     packages=find_packages(),
     install_requires=(
         'Django>=1.6',
