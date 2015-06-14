@@ -38,7 +38,13 @@ Dependencies
 Installing
 ==========
 
-Something like this, with `pip`_ installed, I think::
+`pip`_ installing the latest release via PyPI::
+
+    pip install django-jackfrost==0.2.1
+
+
+If you want to get the latest, unstable version, you can use
+something like this (again with `pip`_) I think::
 
     pip install git+https://github.com/kezabelle/django-jackfrost.git#egg=django-jackfrost
 
