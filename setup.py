@@ -68,6 +68,8 @@ setup(
     description="A static site generator for Django views",
     long_description=LONG_DESCRIPTION,
     include_package_data=True,
+    url='https://github.com/kezabelle/django-jackfrost',
+    download_url='https://github.com/kezabelle/django-jackfrost/releases',
     zip_safe=False,
     license="BSD License",
     classifiers=[
