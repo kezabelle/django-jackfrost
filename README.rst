@@ -193,11 +193,12 @@ built.
 Defining different URLs
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-If a ``Model`` instance implements a ``jackfrost_absolute_url`` method, this
-is used instead of the ``get_absolute_url``.
+If a ``Model`` instance implements a ``jackfrost_urls`` method, this
+is used instead of the ``get_absolute_url``, and should return an iterable of
+all the URLs to consider building.
 
 If the ``Model`` instance has a ``get_list_url`` method, that page will also be
-built. Useful for yielding paginated results, etc.
+built. Useful for updating any ``ListView`` pages, etc.
 
 Extras
 ------

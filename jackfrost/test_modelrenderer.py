@@ -94,8 +94,8 @@ def test_get_urls_can_build():
 @pytest.mark.django_db
 def test_get_urls_prefers_jackfrost_variant():
     class UserProxy3(get_user_model()):
-        def jackfrost_absolute_url(self):
-            return '/jf/'
+        def jackfrost_urls(self):
+            return ['/jf/']
 
         def get_absolute_url(self):
             return '/not-jf/'

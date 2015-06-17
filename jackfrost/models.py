@@ -430,10 +430,9 @@ class ModelRenderer(object):
                 if obj.jackfrost_can_build() is False:
                     continue
 
-            if hasattr(obj, 'jackfrost_absolute_url'):
-                # on the off-chance an app needs to ship specific URLs for us...
-                logger.debug("{obj!r} had `jackfrost_absolute_url` method")
-                yield obj.jackfrost_absolute_url()
+            if hasattr(obj, 'jackfrost_urls'):
+                for jf_url in obj.jackfrost_urls():
+                    yield jf_url
             elif hasattr(obj, 'get_absolute_url'):
                 yield obj.get_absolute_url()
             else:
