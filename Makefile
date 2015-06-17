@@ -33,13 +33,16 @@ clean-test:
 test:
 	python setup.py test
 
-release: clean
-	python setup.py sdist bdist_wheel
+release: dist
 	twine upload dist/*
 
 dist: clean
-	python setup.py sdist dist_wheel
+	python setup.py sdist bdist_wheel
 	ls -l dist
+
+check: dist
+	check-manifest
+	pyroma .
 
 install: clean
 	python setup.py install

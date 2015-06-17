@@ -1,7 +1,8 @@
 include LICENSE
+include CHANGELOG
 recursive-include jackfrost *.html
 recursive-include jackfrost *.rst
 recursive-exclude jackfrost test_*.py
 recursive-exclude jackfrost *.pyc
 recursive-exclude jackfrost README.html
-exclude .coveragerc conftest.py demo_project.py test_templates test_templates/* test_urls.py tox.ini test_collectstatic
+exclude Makefile .coveragerc conftest.py demo_project.py test_templates test_templates/* test_urls.py tox.ini test_collectstatic
