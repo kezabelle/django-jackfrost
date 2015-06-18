@@ -67,6 +67,7 @@ setup(
     author_email='python-package@kerynknight.com',
     description="A static site generator for Django views",
     long_description=LONG_DESCRIPTION,
+    keywords=['django', 'static', 'freeze', 'generator'],
     include_package_data=True,
     url='https://github.com/kezabelle/django-jackfrost',
     download_url='https://github.com/kezabelle/django-jackfrost/releases',
