@@ -1,4 +1,4 @@
-django-jackfrost 0.2.1
+django-jackfrost 0.3.0
 ======================
 
 .. image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=master
@@ -40,7 +40,7 @@ Installing
 
 `pip`_ installing the latest release via PyPI::
 
-    pip install django-jackfrost==0.2.1
+    pip install django-jackfrost==0.3.0
 
 
 If you want to get the latest, unstable version, you can use
