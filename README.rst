@@ -1,8 +1,19 @@
 django-jackfrost 0.3.0
 ======================
 
-.. image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=master
+.. |travis_stable| image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=0.3.0
   :target: https://travis-ci.org/kezabelle/django-jackfrost
+
+.. |travis_master| image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=master
+  :target: https://travis-ci.org/kezabelle/django-jackfrost
+
+
+==============  ======
+Release         Status
+==============  ======
+stable (0.3.0)  |travis_stable|
+master          |travis_master|
+==============  ======
 
 Allows rendering Django views into a collection of static files.
 
