@@ -49,7 +49,7 @@ setup(
     version='0.3.0',
     packages=find_packages(),
     install_requires=(
-        'Django>=1.6',
+        'Django>=1.5',
     ),
     tests_require=(
         'pytest>=2.6.4',
