@@ -1,6 +1,17 @@
 django-jackfrost 0.3.0
 ======================
 
+Convert your Django views into a collection of static HTML files. Or, put
+another way, a Django based static-site-generator with few opinions.
+
+This is my attempt at a different type of static site renderer, instead
+leveraging the availability of Django's `staticfiles`_ functionality to leave
+specifics to someone else :)
+The theory is thus that you could choose a third party storage from, say,
+`django-storages`_ and plug it into ``jackfrost`` and have things Just Work.
+
+I don't actually know if that's true though.
+
 .. |travis_stable| image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=0.3.0
   :target: https://travis-ci.org/kezabelle/django-jackfrost
 
@@ -15,30 +26,21 @@ stable (0.3.0)  |travis_stable|
 master          |travis_master|
 ==============  ======
 
-Allows rendering Django views into a collection of static files.
+Alternatives
+============
 
-`django-medusa`_ doesn't appear to be active anymore, and I didn't like the
-restrictions on where it stored things.
+- There's `django-medusa`_, though it doesn't appear to be active anymore.
+- also `django-bakery`_, which takes a different approach whereby one must
+  extend specific views or models.
 
-This is my attempt at a static site renderer, instead leveraging the availability
-of Django's `staticfiles`_ functionality to leave specifics to someone else :)
-The theory is thus that you could choose a third party storage from, say,
-`django-storages`_ and plug it into `jackfrost` and have things Just Work.
+Differences
+-----------
 
-I don't actually know if that's true though.
-
-Unlike `django-medusa`_, and the `Django`_ admin, there is no autodiscovery,
-and no requirement that renderers go in a specific place.
-
-Unlike `django-bakery`_, I have a documented license; AFAIK, `they don't`_ :(
-
-Unlike either of them, ``django-jackfrost`` has never actually been used. But it
-does have good test coverage, sooooo ...
-
-TODO
-====
-
-- Figure out which ideas from `django-bakery`_ I'd like to approximate.
+- Unlike `django-medusa`_ there is no autodiscovery, and no requirement that
+  renderers go in a specific place.
+- Unlike `django-bakery`_, existing views and models ought to be usable unchanged,
+  because of the renderer approach I've taken, which is more similar to
+  `django-medusa`_ or `Django RSS Feeds`_.
 
 Dependencies
 ============
