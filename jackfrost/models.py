@@ -3,7 +3,11 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
+try:
+    from collections import OrderedDict
+except ImportError:  # Python 2.6
+    from django.utils.datastructures import SortedDict as OrderedDict
 import hashlib
 import json
 import logging
