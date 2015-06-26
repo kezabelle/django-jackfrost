@@ -21,6 +21,7 @@ env:
  - TOX_ENV=pypy-django16
  - TOX_ENV=pypy-django17
  - TOX_ENV=pypy-django18
+ - TOX_ENV=py27-django15
 
 script:
   - tox -e $TOX_ENV
