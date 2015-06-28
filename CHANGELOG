@@ -1,8 +1,27 @@
 Change log
 ----------
+
+
+?next?
+^^^^^^
+
+* None.
+
 0.3.0
 ^^^^^^
 
 * Replaced ``jackfrost_absolute_url`` method in ``ModelRenderer`` with
   ``jackfrost_urls``, which allows models to add every URL they want to cause
   to be visited.
+
+
+0.2.1
+^^^^^^
+
+* Added support for Django 1.6
+* Added celery tasks for building both a single URL, and all URLs.
+
+0.2.0
+^^^^^^
+
+* Initial release.
