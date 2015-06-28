@@ -3,16 +3,13 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import hashlib
-import json
 import logging
 from mimetypes import guess_extension
 # from django.core.urlresolvers import set_script_prefix
-from datetime import datetime
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
-from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -199,55 +196,6 @@ class ErrorReader(object):
                           content=result)
 
 
-ManifestWrite = namedtuple('ManifestWrite', 'existed deleted saved')
-
-
-class Manifest(object):
-    __slots__ = ('name', 'storage', '_loaded')
-
-    def __init__(self, storage):
-        self.name = 'jackfrost.json'
-        self.storage = storage
-        self._loaded = None
-
-    def read(self):
-        if self.storage.exists(self.name):
-            with self.storage.open(self.name) as manifest:
-                return manifest.read().decode('utf-8')
-        return None
-
-    def load(self):
-        result = self.read()
-        if result is not None:
-            return json.loads(result)
-        return {}
-
-    @property
-    def content(self):
-        if self._loaded is None:
-            self._loaded = self.load()
-        return self._loaded
-
-    def save(self, data):
-        file_exists = self.storage.exists(self.name)
-        deleted = None
-        if file_exists:
-            deleted = self.storage.delete(self.name)
-        self._loaded = json.dumps(data).encode('utf-8')
-        payload_file = ContentFile(content=self.content)
-        saved = self.storage.save(name=self.name, content=payload_file)
-        return ManifestWrite(
-            existed=file_exists,
-            deleted=deleted,
-            saved=saved
-        )
-
-    def has_changed(self, path, md5):
-        if path not in self.content:
-            return True
-        return self.content.get('md5', 'NOPE') == md5
-
-
 
 class URLWriter(object):
     __slots__ = ('data', '_manifest', '_storage')
@@ -301,19 +249,9 @@ class URLWriter(object):
 
     def build(self):
         writer_started.send(sender=self.__class__, instance=self)
-        # manifest = OrderedDict()
-        # manifest['__metadata__'] = {
-        #     'version': '0.3.0',
-        #     'date_started': datetime.utcnow()
-        # }
         for idx, data in enumerate(self.data, start=0):
             write_result = self.write(data)
-            # manifest[write_result.name] = write_result._asdict()
             yield write_result
-        # manifest['__metadata__']['date_finished'] = datetime.utcnow()
-        # manifest_json = json.dumps(manifest, indent=4, sort_keys=True,
-        #                            cls=DjangoJSONEncoder)
-        # self.write(Manifest())
         writer_finished.send(sender=self.__class__, instance=self)
 
     def __call__(self):
