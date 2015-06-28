@@ -10,6 +10,35 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 
+HERE = os.path.abspath(os.path.dirname(__file__))
+PYPY = False
+CYTHON = False
+
+try:
+    # noinspection PyStatementEffect,PyUnresolvedReferences
+    sys.pypy_version_info
+    PYPY = True
+except AttributeError:
+    pass
+
+if not PYPY:
+    try:
+        from Cython.Distutils import build_ext
+        CYTHON = True
+    except ImportError:
+        pass
+
+if CYTHON:
+    from setuptools.extension import Extension
+    ext_modules = [
+        Extension (str('jackfrost.models'),
+                   [str(os.path.join(HERE, 'jackfrost', 'models.py'))]),
+    ]
+    cmdclass = {'build_ext': build_ext}
+else:
+    ext_modules = []
+    cmdclass = {}
+
 class PyTest(TestCommand):
     def initialize_options(self):
         TestCommand.initialize_options(self)
@@ -25,11 +54,7 @@ class PyTest(TestCommand):
         import pytest
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
-
-HERE = os.path.abspath(os.path.dirname(__file__))
-
-
-
+cmdclass.update(test=PyTest)
 
 
 def make_readme(root_path):
@@ -61,7 +86,8 @@ setup(
         'pytest-spec>=0.2.24',
         'celery>=3.1.18',
     ),
-    cmdclass = {'test': PyTest},
+    cmdclass=cmdclass,
+    ext_modules=ext_modules,
     author='Keryn Knight',
     author_email='python-package@kerynknight.com',
     description="A static site generator for Django views",
