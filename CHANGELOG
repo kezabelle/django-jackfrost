@@ -5,7 +5,8 @@ Change log
 ?next?
 ^^^^^^
 
-* None.
+* Made the pre/post save signal ``build_page_for_obj`` actually work.
+* the ``models`` module will be compiled using Cython, if installed.
 
 0.3.0
 ^^^^^^
