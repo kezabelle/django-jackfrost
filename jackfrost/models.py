@@ -122,7 +122,8 @@ class URLReader(object):
 
     def build_page(self, url):
         resp = self.client.get(url, follow=True)
-        assert resp.status_code == 200, "Invalid response"
+        assert resp.status_code == 200, "Got %(code)d response for %(url)s" % {
+            'code': resp.status_code, 'url': url}
 
         # calculate changed URL and redirects if necessary
         if hasattr(resp, 'redirect_chain') and resp.redirect_chain:
