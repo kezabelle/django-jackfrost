@@ -6,7 +6,7 @@ from __future__ import division
 from contextlib import contextmanager
 from shutil import rmtree
 from django.conf import settings
-from django.test import override_settings
+from django.test.utils import override_settings
 from django.utils.encoding import force_bytes
 from jackfrost.models import URLWriter
 import os
