@@ -32,7 +32,7 @@ if CYTHON:
     from setuptools.extension import Extension
     ext_modules = [
         Extension (str('jackfrost.models'),
-                   [str(os.path.join(HERE, 'jackfrost', 'models.py'))]),
+                   [str(os.path.join('jackfrost', 'models.py'))]),
     ]
     cmdclass = {'build_ext': build_ext}
 else:
