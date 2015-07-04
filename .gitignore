@@ -15,3 +15,5 @@ bash_history.txt
 dist/
 htmlcov/
 build
+jackfrost/models.c
+jackfrost/models.so
