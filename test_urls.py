@@ -2,9 +2,12 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from random import randint
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url, include
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
+from django.contrib import admin
 from django.core.paginator import Paginator
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
@@ -18,7 +21,12 @@ from django.shortcuts import render
 from django.utils.six.moves import range
 from django.utils.encoding import force_text
 from django.views.decorators.http import require_http_methods
+from jackfrost.actions import build_selected
 from jackfrost.models import ModelRenderer
+
+
+User.get_absolute_url = lambda x: reverse('show_user', kwargs={'pk': x.pk})
+UserAdmin.actions = [build_selected]
 
 
 class UserListRenderer(ModelRenderer):
@@ -87,6 +95,7 @@ def redirect_b(request):
 
 
 urlpatterns = patterns('',
+   url(r'^admin/', include(admin.site.urls)),
    url(r'^users/show/(?P<pk>\d+)$', show_user, name='show_user'),
    url(r'^users/generate/$', make_users, name='make_users'),
    url(r'^users/(?P<page>\d+)/$', users, name='users'),

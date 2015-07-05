@@ -15,12 +15,15 @@ settings.configure(
     DEBUG=DEBUG,
     SECRET_KEY=SECRET_KEY,
     ALLOWED_HOSTS=ALLOWED_HOSTS,
+    SITE_ID=1,
     ROOT_URLCONF='test_urls',  # or __name__ to use local ones ...
     MIDDLEWARE_CLASSES=(
         'django.middleware.common.CommonMiddleware',
         'django.middleware.csrf.CsrfViewMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
     ),
     DATABASES={
         'default': {
@@ -33,6 +36,7 @@ settings.configure(
     ),
     TEMPLATE_CONTEXT_PROCESSORS=(
         'django.contrib.messages.context_processors.messages',
+        'django.contrib.auth.context_processors.auth',
     ),
     INSTALLED_APPS=(
         'django.contrib.contenttypes',
@@ -40,12 +44,15 @@ settings.configure(
         'django.contrib.sites',
         'django.contrib.auth',
         'django.contrib.staticfiles',
+        'django.contrib.admin',
         'jackfrost',
     ),
     STATIC_ROOT=os.path.join(BASE_DIR, 'test_collectstatic', 'demo_project'),
     STATIC_URL='/__static__/',
     JACKFROST_RENDERERS=('test_urls.UserListRenderer',),
-    MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+    MESSAGE_STORAGE='django.contrib.messages.storage.cookie.CookieStorage',
+    SESSION_ENGINE='django.contrib.sessions.backends.signed_cookies',
+    SESSION_COOKIE_HTTPONLY=True,
 )
 
 from django.core.wsgi import get_wsgi_application

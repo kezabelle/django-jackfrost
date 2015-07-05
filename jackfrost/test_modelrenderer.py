@@ -72,8 +72,6 @@ def test_get_urls_skips_because_cannot_build():
     assert SubModelRenderer()() == frozenset()
 
 
-@pytest.mark.xfail(django.VERSION[:2] < (1,7),
-                   reason="old Django's User has a get_absolute_url method ...")
 @pytest.mark.django_db
 def test_get_urls_can_build():
     class UserProxy2(get_user_model()):
@@ -87,8 +85,8 @@ def test_get_urls_can_build():
         def get_model(self):
             return UserProxy2
 
-    get_user_model().objects.create()
-    assert SubModelRenderer()() == frozenset()
+    x = get_user_model().objects.create()
+    assert SubModelRenderer()() == frozenset(['/users/show/%d' % x.pk])
 
 
 @pytest.mark.django_db
