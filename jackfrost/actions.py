@@ -15,6 +15,7 @@ from jackfrost.models import URLWriter
 def build_selected(modeladmin, request, queryset):
     opts = modeladmin.model._meta
     app_label = opts.app_label
+    model_name = getattr(opts, 'model_name', opts.module_name)
 
     # cover per-object permissions too ...
     for obj in queryset:
@@ -65,7 +66,7 @@ def build_selected(modeladmin, request, queryset):
 
     # Display the confirmation page
     return TemplateResponse(request, modeladmin.delete_selected_confirmation_template or [
-        "admin/%s/%s/build_selected_confirmation.html" % (app_label, opts.model_name),
+        "admin/%s/%s/build_selected_confirmation.html" % (app_label, model_name),
         "admin/%s/build_selected_confirmation.html" % app_label,
         "jackfrost/build_selected_confirmation.html",
     ], context, current_app=modeladmin.admin_site.name)
