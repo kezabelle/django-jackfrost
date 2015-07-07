@@ -15,7 +15,10 @@ from jackfrost.models import URLWriter
 def build_selected(modeladmin, request, queryset):
     opts = modeladmin.model._meta
     app_label = opts.app_label
-    model_name = getattr(opts, 'model_name', opts.module_name)
+    try:
+        model_name = opts.model_name
+    except AttributeError:  # pragma: no cover ... Django 1.5
+        model_name = opts.module_name
 
     # cover per-object permissions too ...
     for obj in queryset:
