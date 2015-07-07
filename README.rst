@@ -225,7 +225,7 @@ from their respective templates, if they exist. Useful if you want to wire
 up Apache ``ErrorDocument`` directives or whatever.
 
 
-Running the tests (85% coverage)
+Running the tests (87% coverage)
 --------------------------------
 
 Given a complete clone::

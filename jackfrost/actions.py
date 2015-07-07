@@ -47,8 +47,10 @@ def build_selected(modeladmin, request, queryset):
 
     try:
         context = modeladmin.admin_site.each_context(request=request)
-    except TypeError:
+    except TypeError:  # pragma: no cover ... Django 1.7
         context = modeladmin.admin_site.each_context()
+    except AttributeError:  # pragma: no cover ... Django 1.6
+        context = {}
 
     context.update({
         'objects_name': objects_name,

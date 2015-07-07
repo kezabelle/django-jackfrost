@@ -25,6 +25,7 @@ def pytest_configure():
                 'django.contrib.auth',
                 'django.contrib.admin',
                 'django.contrib.contenttypes',
+                'django.contrib.messages',
                 'jackfrost',
             ),
             # these are the default in 1.8, so we should make sure we
