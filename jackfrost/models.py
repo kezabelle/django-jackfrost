@@ -18,10 +18,11 @@ from django.utils.http import is_safe_url
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves.urllib.parse import urlparse
 from jackfrost.signals import reader_started
+from jackfrost.signals import read_page
 from jackfrost.signals import reader_finished
 from jackfrost.signals import writer_started
+from jackfrost.signals import write_page
 from jackfrost.signals import writer_finished
-from jackfrost.signals import read_page
 from os.path import splitext
 try:
     from django.utils.module_loading import import_string
@@ -234,6 +235,9 @@ class URLWriter(object):
         return self._storage
 
     def write(self, data):
+        """
+        :type data: jackfrost.models.ReadResult
+        """
         name = data.filename
         content = force_bytes(data.content)
         content_hash = hashlib.md5(content).hexdigest()
@@ -245,8 +249,12 @@ class URLWriter(object):
         if file_exists:
             self.storage.delete(name=name)
         result = self.storage.save(name=name, content=content_io)
-        return WriteResult(name=name, created=not file_exists, modified=True,
-                           md5=content_hash, storage_result=result)
+        write_result = WriteResult(name=name, created=not file_exists,
+                                   modified=True, md5=content_hash,
+                                   storage_result=result)
+        write_page.send(sender=self.__class__, instance=self, read_result=data,
+                        write_result=write_result)
+        return write_result
 
     def build(self):
         writer_started.send(sender=self.__class__, instance=self)

@@ -26,3 +26,20 @@ def build_page_for_obj(sender, instance, **kwargs):
     read = tuple(URLReader(urls=instance_urls)())
     written = tuple(URLWriter(data=read)())
     return (read, written)
+
+
+def eventlog_write(sender, instance, read_result, write_result, **kwargs):
+    """
+    :type sender: jackfrost.models.URLWriter
+    :type instance: jackfrost.models.URLWriter
+    :type read_result: jackfrost.models.ReadResult
+    :type write_result: jackfrost.models.WriteResult
+    :type kwargs: dict
+    """
+    from pinax.eventlog.models import log
+    return log(user=None,
+               action='URL "{url!s}" written'.format(**read_result._asdict()),
+               extra={
+                   'ReadResult': read_result._asdict(),
+                   'WriteResult': write_result._asdict(),
+               })

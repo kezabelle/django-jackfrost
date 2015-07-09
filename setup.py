@@ -85,6 +85,7 @@ setup(
         'pytest-sugar>=0.4.0',
         'pytest-spec>=0.2.24',
         'celery>=3.1.18',
+        'pinax-eventlog>=1.0.0',
     ),
     cmdclass=cmdclass,
     ext_modules=ext_modules,

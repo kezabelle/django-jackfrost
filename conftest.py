@@ -27,6 +27,7 @@ def pytest_configure():
                 'django.contrib.contenttypes',
                 'django.contrib.messages',
                 'jackfrost',
+                'pinax.eventlog',
             ),
             # these are the default in 1.8, so we should make sure we
             # work with those.
