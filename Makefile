@@ -31,7 +31,7 @@ clean-test:
 	rm -fr htmlcov/
 
 test:
-	python setup.py test
+	python -B -tt -W ignore setup.py test
 
 release: dist
 	twine upload dist/*
