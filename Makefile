@@ -43,6 +43,7 @@ dist: clean
 check: dist
 	check-manifest
 	pyroma .
+	restview --long-description
 
 install: clean
 	python setup.py install

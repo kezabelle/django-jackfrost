@@ -177,13 +177,14 @@ Renderers may also be classes::
 Listening for renders
 ^^^^^^^^^^^^^^^^^^^^^
 
-There are 7 signals in total:
+There are 8 signals in total:
 
 * ``build_started`` is fired when the management command is run.
 * ``reader_started`` is fired when a ``URLReader`` instance begins working.
 * ``read_page`` is fired when a ``URLReader`` successfully gets a URL's content.
 * ``reader_finished`` is fired when a ``URLReader`` instance completes.
 * ``writer_started`` is fired when a ``URLWriter`` instance begins working.
+* ``write_page`` is fired just after the content is written to the storage backend.
 * ``writer_finished`` is fired when the ``URLWriter`` completes
 * ``build_finished`` fires at the end of the management command.
 
