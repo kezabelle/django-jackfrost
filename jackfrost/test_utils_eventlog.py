@@ -20,8 +20,10 @@ def sortof_tidying_signal(signal):
     kwargs = {'receiver': eventlog_write,
               'dispatch_uid': 'pinax_eventlog_write'}
     signal.connect(**kwargs)
-    yield
-    signal.disconnect(**kwargs)
+    try:
+        yield
+    finally:
+        signal.disconnect(**kwargs)
 
 
 @pytest.mark.django_db

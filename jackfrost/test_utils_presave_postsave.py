@@ -24,8 +24,10 @@ def tidying_signal(cls, signal):
               'sender': cls,
               'dispatch_uid': 'build_page_for_obj__pre_save'}
     signal.connect(**kwargs)
-    yield
-    signal.disconnect(**kwargs)
+    try:
+        yield
+    finally:
+        signal.disconnect(**kwargs)
 
 
 @pytest.mark.django_db
