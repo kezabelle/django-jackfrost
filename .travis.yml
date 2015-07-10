@@ -6,7 +6,7 @@ notifications:
   email: false
 
 install:
-  - pip install --upgrade tox
+  - pip install --upgrade pip setuptools wheel tox
 
 env:
  - TOX_ENV=py27-django15
