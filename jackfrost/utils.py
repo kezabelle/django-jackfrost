@@ -37,9 +37,14 @@ def eventlog_write(sender, instance, read_result, write_result, **kwargs):
     :type kwargs: dict
     """
     from pinax.eventlog.models import log
+    # because `content` may be binary, and is thus a bytes object,
+    # we need to remove it, because bytes aren't json encodable, at least
+    # under python3.
+    read = read_result._asdict()
+    read.pop('content')
     return log(user=None,
                action='URL "{url!s}" written'.format(**read_result._asdict()),
                extra={
-                   'ReadResult': read_result._asdict(),
+                   'ReadResult': read,
                    'WriteResult': write_result._asdict(),
                })
