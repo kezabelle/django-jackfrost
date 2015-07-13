@@ -1,4 +1,4 @@
-jackfrost 0.3.0
+jackfrost 0.4.0
 ===============
 
 This package represents the `Django`_ application which should be in your

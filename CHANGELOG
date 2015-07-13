@@ -1,8 +1,7 @@
 Change log
 ----------
 
-
-?next?
+0.4.0
 ^^^^^^
 
 * Added ``signals.write_page`` which is fired after the storage backend has

@@ -1,4 +1,4 @@
-django-jackfrost 0.3.0
+django-jackfrost 0.4.0
 ======================
 
 Convert your Django views into a collection of static HTML files. Or, put
@@ -12,7 +12,7 @@ The theory is thus that you could choose a third party storage from, say,
 
 I don't actually know if that's true though.
 
-.. |travis_stable| image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=0.3.0
+.. |travis_stable| image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=0.4.0
   :target: https://travis-ci.org/kezabelle/django-jackfrost
 
 .. |travis_master| image:: https://travis-ci.org/kezabelle/django-jackfrost.svg?branch=master
@@ -22,7 +22,7 @@ I don't actually know if that's true though.
 ==============  ======
 Release         Status
 ==============  ======
-stable (0.3.0)  |travis_stable|
+stable (0.4.0)  |travis_stable|
 master          |travis_master|
 ==============  ======
 
@@ -53,7 +53,7 @@ Installing
 
 `pip`_ installing the latest release via PyPI::
 
-    pip install django-jackfrost==0.3.0
+    pip install django-jackfrost==0.4.0
 
 
 If you want to get the latest, unstable version, you can use
