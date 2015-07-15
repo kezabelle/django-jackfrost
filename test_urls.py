@@ -36,6 +36,7 @@ class UserListRenderer(ModelRenderer):
         paginator = Paginator(get_user_model().objects.all(), 5)
         for page in paginator.page_range:
             yield reverse('users', kwargs={'page': page})
+        yield reverse('users')
 
 
 @require_http_methods(['POST'])
