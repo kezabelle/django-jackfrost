@@ -8,9 +8,10 @@ import hashlib
 import logging
 from mimetypes import guess_extension
 # from django.core.urlresolvers import set_script_prefix
+from django.conf.urls import url
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -39,8 +40,27 @@ from posixpath import normpath
 __all__ = ['URLCollector', 'URLReader', 'ErrorReader', 'URLWriter',
            'ModelRenderer', 'SitemapRenderer', 'MedusaRenderer', 'FeedRenderer']
 logger = logging.getLogger(__name__)
-ReadResult = namedtuple('ReadResult', 'url filename status content')
-WriteResult = namedtuple('WriteResult', 'name created modified md5 storage_result')
+
+
+class ReadResult(namedtuple('ReadResult', 'url filename status content')):
+    __slots__ = ()
+
+    def as_response(self, request):
+        return StreamingHttpResponse(streaming_content=self.content,
+                                     status=self.status)
+
+    def as_urls(self):
+        yield url(regex=r'^{url}$'.format(url=self.url[1:]),
+                  name=None, view=self.as_response)
+        yield url(regex=r'^{url}$'.format(url=self.filename),
+                  name=None, view=self.as_response)
+
+
+# this is a class rather than a namedtuple instance itself because otherwise
+# multiprocessint cannot handle cythonized versions:
+# Reason: 'PicklingError("Can't pickle <class 'importlib.WriteResult'>",)'
+class WriteResult(namedtuple('WriteResult', 'name created modified md5 storage_result')):
+    __slots__ = ()
 
 
 class URLReader(object):

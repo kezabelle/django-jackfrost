@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from collections import namedtuple
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves import input
 from itertools import chain
@@ -8,10 +9,12 @@ import multiprocessing
 from datetime import datetime
 from optparse import make_option
 import sys
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
 from django.core.management import CommandError
 from django.core.management.base import OutputWrapper
+from django.test import override_settings
 from django.utils.encoding import force_text
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves import range
@@ -43,6 +46,11 @@ def multiprocess_writer(data, stdout=None):
     return out
 
 
+class FakeURLConf(namedtuple('FakeURLConf', 'urlpatterns')):
+    def __repr__(self):
+        return '<%(cls)s [%(count)d]>' % {'mod': self.__module__,
+                                          'cls': self.__class__.__name__,
+                                          'count': len(self.urlpatterns)}
 
 
 class Command(BaseCommand):
@@ -56,6 +64,9 @@ class Command(BaseCommand):
         make_option('--processes',
             action='store', dest='processes', default=1, type=int,
             help="Number of processes to spawn"),
+        make_option('--dry-run',
+            action='store_true', dest='dry_run', default=False,
+            help="Read all files and run the preview server"),
     )
 
     @property
@@ -69,6 +80,9 @@ class Command(BaseCommand):
         parser.add_argument('--processes',
             action='store', dest='processes', default=1, type=int,
             help="Number of processes to spawn")
+        parser.add_argument('--dry-run',
+            action='store_true', dest='dry_run', default=False,
+            help="Read all files and run the preview server")
 
     def set_options(self, **options):
         """
@@ -78,6 +92,24 @@ class Command(BaseCommand):
         self.verbosity = options['verbosity']
         self.processes = options['processes']
         self.multiprocess = options['processes'] > 1
+        self.dry_run = options['dry_run']
+
+    def handle_preview(self, read_results):
+        if 'django.contrib.staticfiles' in settings.INSTALLED_APPS:
+            from django.contrib.staticfiles.management.commands import runserver
+        else:
+            from django.core.management.commands import runserver
+
+        def filename_len(res):
+            return len(res.filename)
+
+        sorted_views = sorted((read_result for read_result in read_results),
+                              key=filename_len)
+        fake_views = chain.from_iterable(read_result.as_urls()
+                                         for read_result in sorted_views)
+        urlconf = FakeURLConf(urlpatterns=tuple(fake_views))
+        with override_settings(ROOT_URLCONF=urlconf):
+            return runserver.Command().handle(use_reloader=False)
 
     def handle(self, **options):
         self.set_options(**options)
@@ -85,19 +117,6 @@ class Command(BaseCommand):
             collector = URLCollector()
         except ImproperlyConfigured as e:
             raise CommandError(force_text(e))
-
-        message = ['\n']
-        message.append(
-            'You have requested to collect all defined `JACKFROST_RENDERERS` '
-            'at the destination\n'
-            'location as specified in your settings via `JACKFROST_STORAGE`\n'
-        )
-        message.append(
-            'Are you sure you want to do this?\n\n'
-            "Type 'yes' to continue, or 'no' to cancel: "
-        )
-        if self.interactive and input(''.join(message)) != 'yes':
-            raise CommandError("Collecting cancelled.")
 
         collected_urls = collector()
         if not collected_urls:
@@ -129,6 +148,22 @@ class Command(BaseCommand):
             ))
         )
 
+        if self.dry_run:
+            return self.handle_preview(read_results=read_results)
+
+        message = ['\n']
+        message.append(
+            'You have requested to collect all defined `JACKFROST_RENDERERS` '
+            'at the destination\n'
+            'location as specified in your settings via `JACKFROST_STORAGE`\n'
+        )
+        message.append(
+            'Are you sure you want to do this?\n\n'
+            "Type 'yes' or 'y' to continue: "
+        )
+        if self.interactive and input(''.join(message)).lower() not in ('yes', 'y'):
+            raise CommandError("Collecting cancelled.")
+
         writing_started = datetime.utcnow()
         if self.multiprocess:  # pragma: no cover
             writer_pool = multiprocessing.Pool(self.processes)
@@ -145,7 +180,7 @@ class Command(BaseCommand):
         error_results = error_reader()
         written_errors = multiprocess_writer(data=error_results,
                                              stdout=self.stdout._out)
-        
+
         writing_finished = datetime.utcnow()
         writing_duration = writing_finished - writing_started
 
@@ -163,5 +198,3 @@ class Command(BaseCommand):
             ))
         )
         build_finished.send(sender=self.__class__)
-
-
