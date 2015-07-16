@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_save
-from jackfrost.utils import build_page_for_obj
+from jackfrost.receivers import build_page_for_obj
 import pytest
 
 

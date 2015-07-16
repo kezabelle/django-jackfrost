@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from __future__ import division
 from contextlib import contextmanager
 import django
-from jackfrost.utils import eventlog_write
+from jackfrost.receivers import eventlog_write
 from jackfrost.signals import write_page
 import pytest
 from django.core.urlresolvers import reverse
