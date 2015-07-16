@@ -14,7 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
 from django.core.management import CommandError
 from django.core.management.base import OutputWrapper
-from django.test import override_settings
+from django.test.utils import override_settings
 from django.utils.encoding import force_text
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves import range
