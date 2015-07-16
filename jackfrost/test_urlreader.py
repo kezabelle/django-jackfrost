@@ -42,6 +42,18 @@ def test_target_filename_root_url():
     assert reader.get_target_filename(url='/', response=resp) == 'index.html'
 
 
+def test_target_filename_root_file():
+    reader = URLReader(urls=())
+    resp = {'Content-Type': 'text/html; charset=utf-8'}
+    assert reader.get_target_filename(url='/index.json', response=resp) == 'index.json'
+
+
+def test_target_filename_root_file_without_extension():
+    reader = URLReader(urls=())
+    resp = {'Content-Type': 'application/javascript; charset=utf-8'}
+    assert reader.get_target_filename(url='/testjson/', response=resp) == 'testjson/index.js'
+
+
 def test_target_filename_without_extension_and_no_trailing_slash():
     reader = URLReader(urls=())
     resp = {'Content-Type': 'text/html; charset=utf-8'}

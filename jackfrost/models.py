@@ -25,6 +25,7 @@ from jackfrost.signals import reader_finished
 from jackfrost.signals import writer_started
 from jackfrost.signals import write_page
 from jackfrost.signals import writer_finished
+from jackfrost.utils import is_url_usable
 from os.path import splitext
 try:
     from django.utils.module_loading import import_string
@@ -95,8 +96,12 @@ class URLReader(object):
         }
 
     def get_target_filename(self, url, response):
-        url = url.lstrip('/')
-        if splitext(url)[1] == '':
+        if not is_url_usable(url):
+            raise ReaderError(
+                "the URL '%(url)s' does not end in a forward-slash ('/'), nor "
+                "does it have a file extension." % {'url': url})
+        path_part, extension = splitext(url)
+        if extension == '':
             content_type = response['Content-Type']
             major = content_type.split(';', 1)[0]
             extension = self.content_types.get(
@@ -105,6 +110,7 @@ class URLReader(object):
                                                    ext=extension)
         else:
             filename = url
+        filename = filename.lstrip('/')
         return normpath(filename)
 
     @property
@@ -345,13 +351,6 @@ class URLCollector(object):
                 renderer_cls = FeedRenderer(cls=renderer_cls)
             yield renderer_cls
 
-    def is_url_usable(self, url):
-        if url.endswith('/'):
-            return True
-        path, ext = splitext(url)
-        return ext != ''
-
-
     def get_urls(self):
         urls = set()
         for renderer in self.renderers:
@@ -363,14 +362,13 @@ class URLCollector(object):
             # doesn't wrap itself ...
             for url in _cls_or_func_result:
                 current_url = force_text(url)
-                if self.is_url_usable(url=current_url):
-                    urls.add(current_url)
-                else:
+                if not is_url_usable(url=current_url):
                     raise CollectionError(
                         "Renderer %(renderer)s provided the URL '%(url)s' "
                         "which does not end in a forward-slash ('/'), nor "
                         "does it have a file extension." % {
                             'renderer': renderer, 'url': current_url})
+                urls.add(current_url)
         return urls
 
     def __call__(self):
