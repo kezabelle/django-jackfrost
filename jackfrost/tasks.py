@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from django.core.exceptions import ImproperlyConfigured
-from jackfrost.models import URLCollector, URLReader, URLWriter
+from jackfrost.models import collect, read, write
 
 try:
     from celery import shared_task
@@ -15,7 +15,7 @@ except ImportError:
 
 @shared_task
 def build_all():
-    collected_urls = URLCollector()()
+    collected_urls = collect()
     subtasks = group(build_single.s(url=url) for url in collected_urls)
     results = subtasks()
     return results.get()
@@ -23,6 +23,6 @@ def build_all():
 
 @shared_task
 def build_single(url):
-    read = tuple(URLReader(urls=[url])())
-    written = tuple(URLWriter(data=read)())
-    return (read, written)
+    read_ = tuple(read(urls=[url]))
+    written = tuple(write(data=read_))
+    return (read_, written)

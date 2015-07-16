@@ -15,6 +15,7 @@ from django.http import HttpResponse, StreamingHttpResponse
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
+from django.utils.encoding import force_text
 from django.utils.http import is_safe_url
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves.urllib.parse import urlparse
@@ -40,6 +41,10 @@ from posixpath import normpath
 __all__ = ['URLCollector', 'URLReader', 'ErrorReader', 'URLWriter',
            'ModelRenderer', 'SitemapRenderer', 'MedusaRenderer', 'FeedRenderer']
 logger = logging.getLogger(__name__)
+
+
+class CollectionError(ValueError): pass
+class ReaderError(ValueError): pass
 
 
 class ReadResult(namedtuple('ReadResult', 'url filename status content')):
@@ -220,11 +225,10 @@ class ErrorReader(object):
 
 
 class URLWriter(object):
-    __slots__ = ('data', '_manifest', '_storage')
+    __slots__ = ('data', '_storage')
 
-    def __init__(self, data, manifest=None):
+    def __init__(self, data):
         self.data = data
-        self._manifest = manifest
         self._storage = None
 
     def __repr__(self):
@@ -262,8 +266,6 @@ class URLWriter(object):
         content = force_bytes(data.content)
         content_hash = hashlib.md5(content).hexdigest()
         content_io = ContentFile(content)
-
-        #manifest.has_changed(path=name, md5=content_has)
 
         file_exists = self.storage.exists(name=name)
         if file_exists:
@@ -343,6 +345,13 @@ class URLCollector(object):
                 renderer_cls = FeedRenderer(cls=renderer_cls)
             yield renderer_cls
 
+    def is_url_usable(self, url):
+        if url.endswith('/'):
+            return True
+        path, ext = splitext(url)
+        return ext != ''
+
+
     def get_urls(self):
         urls = set()
         for renderer in self.renderers:
@@ -353,11 +362,30 @@ class URLCollector(object):
             # ensure it's evaluated, incase the renderer is a generator which
             # doesn't wrap itself ...
             for url in _cls_or_func_result:
-                urls.add(url)
+                current_url = force_text(url)
+                if self.is_url_usable(url=current_url):
+                    urls.add(current_url)
+                else:
+                    raise CollectionError(
+                        "Renderer %(renderer)s provided the URL '%(url)s' "
+                        "which does not end in a forward-slash ('/'), nor "
+                        "does it have a file extension." % {
+                            'renderer': renderer, 'url': current_url})
         return urls
 
     def __call__(self):
         return self.get_urls()
+
+
+
+def collect(renderers=None):
+    return URLCollector(renderers=renderers)()
+
+def read(urls):
+    return URLReader(urls=urls)()
+
+def write(data):
+    return URLWriter(data=data)()
 
 
 # Originally: https://gist.github.com/kezabelle/6683315

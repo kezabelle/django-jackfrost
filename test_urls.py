@@ -97,10 +97,10 @@ def redirect_b(request):
 
 urlpatterns = patterns('',
    url(r'^admin/', include(admin.site.urls)),
-   url(r'^users/show/(?P<pk>\d+)$', show_user, name='show_user'),
+   url(r'^users/show/(?P<pk>\d+)/$', show_user, name='show_user'),
    url(r'^users/generate/$', make_users, name='make_users'),
    url(r'^users/(?P<page>\d+)/$', users, name='users'),
-   url(r'^users/$', users, name='users'),
+   url(r'^$', users, name='users'),
    url(r'^streamable/$', streamer, name='streamable'),
    url(r'^content/a/b/$', content_b, name='content_b'),
    url(r'^content/a/$', content_a, name='content_a'),

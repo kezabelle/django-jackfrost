@@ -10,8 +10,9 @@ import os
 from django.test.client import Client
 from django.test.utils import override_settings
 from jackfrost import defaults
-from jackfrost.models import URLReader, URLWriter
+from jackfrost.models import URLReader, URLWriter, ReaderError
 from jackfrost.defaults import SubfolderStaticFilesStorage
+import pytest
 
 
 def test_get_content_types_mapping():
@@ -35,11 +36,17 @@ def test_get_content_types_mapping_overrides():
         assert reader.content_types == {}
 
 
-def test_target_filename_without_extension():
+def test_target_filename_root_url():
     reader = URLReader(urls=())
     resp = {'Content-Type': 'text/html; charset=utf-8'}
-    assert reader.get_target_filename(
-        url='/a/b/c', response=resp) == 'a/b/c/index.html'
+    assert reader.get_target_filename(url='/', response=resp) == 'index.html'
+
+
+def test_target_filename_without_extension_and_no_trailing_slash():
+    reader = URLReader(urls=())
+    resp = {'Content-Type': 'text/html; charset=utf-8'}
+    with pytest.raises(ReaderError):
+        reader.get_target_filename(url='/a/b/c', response=resp)
 
 
 def test_target_filename_without_extension_other_type():

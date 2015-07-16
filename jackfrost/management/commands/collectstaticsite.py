@@ -18,7 +18,8 @@ from django.test.utils import override_settings
 from django.utils.encoding import force_text
 # noinspection PyUnresolvedReferences
 from django.utils.six.moves import range
-from jackfrost.models import URLCollector, URLReader, URLWriter, ErrorReader
+from jackfrost.models import (URLCollector, URLReader, URLWriter, ErrorReader,
+                              CollectionError)
 from jackfrost.signals import build_started
 from jackfrost.signals import build_finished
 
@@ -118,7 +119,11 @@ class Command(BaseCommand):
         except ImproperlyConfigured as e:
             raise CommandError(force_text(e))
 
-        collected_urls = collector()
+        try:
+            collected_urls = collector()
+        except CollectionError as e:
+            raise CommandError(force_text(e))
+
         if not collected_urls:
             raise CommandError("No URLs found after running all defined `JACKFROST_RENDERERS`")
 

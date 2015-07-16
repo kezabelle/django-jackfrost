@@ -86,7 +86,7 @@ def test_get_urls_can_build():
             return UserProxy2
 
     x = get_user_model().objects.create()
-    assert SubModelRenderer()() == frozenset(['/users/show/%d' % x.pk])
+    assert SubModelRenderer()() == frozenset(['/users/show/%d/' % x.pk])
 
 
 @pytest.mark.django_db
