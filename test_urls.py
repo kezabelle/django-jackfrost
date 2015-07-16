@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
+from django.contrib.sitemaps import Sitemap
 from django.core.paginator import Paginator
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
@@ -21,12 +22,20 @@ from django.shortcuts import render
 from django.utils.six.moves import range
 from django.utils.encoding import force_text
 from django.views.decorators.http import require_http_methods
+from django.contrib.sitemaps.views import index as sitemap_index
+from django.contrib.sitemaps.views import sitemap as sitemap_section
 from jackfrost.actions import build_selected
 from jackfrost.models import ModelRenderer
 
 
 User.get_absolute_url = lambda x: reverse('show_user', kwargs={'pk': x.pk})
 UserAdmin.actions = [build_selected]
+
+
+class UserSitemap(Sitemap):
+    changefreq = "never"
+    def items(self):
+        return get_user_model().objects.all()
 
 
 class UserListRenderer(ModelRenderer):
@@ -37,6 +46,8 @@ class UserListRenderer(ModelRenderer):
         for page in paginator.page_range:
             yield reverse('users', kwargs={'page': page})
         yield reverse('users')
+        yield reverse('sitemap')
+        yield reverse('sitemap', kwargs={'section': 'users'})
 
 
 @require_http_methods(['POST'])
@@ -94,8 +105,13 @@ def redirect_a(request):
 def redirect_b(request):
     return HttpResponseRedirect(reverse('content_b'))
 
+sitemaps = {
+    'users': UserSitemap,
+}
 
 urlpatterns = patterns('',
+   url(r'^sitemap\.xml$', sitemap_index, {'sitemaps': sitemaps}, name='sitemap'),
+    url(r'^sitemap-(?P<section>.+)/$', sitemap_section, {'sitemaps': sitemaps}, name='sitemap'),
    url(r'^admin/', include(admin.site.urls)),
    url(r'^users/show/(?P<pk>\d+)/$', show_user, name='show_user'),
    url(r'^users/generate/$', make_users, name='make_users'),

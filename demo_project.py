@@ -42,6 +42,7 @@ settings.configure(
         'django.contrib.contenttypes',
         'django.contrib.messages',
         'django.contrib.sites',
+        'django.contrib.sitemaps',
         'django.contrib.auth',
         'django.contrib.staticfiles',
         'django.contrib.admin',

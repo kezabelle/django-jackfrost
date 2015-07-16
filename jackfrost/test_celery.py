@@ -53,4 +53,4 @@ def test_building_all():
     current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS
     with override_settings(STATIC_ROOT=NEW_STATIC_ROOT, JACKFROST_RENDERERS=renderers):  # noqa
         result = build_all.apply().get()
-    assert len(result) == 121
+    assert len(result) == 123

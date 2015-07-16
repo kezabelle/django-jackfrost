@@ -22,6 +22,7 @@ def pytest_configure():
                 },
             INSTALLED_APPS=(
                 'django.contrib.sites',
+                'django.contrib.sitemaps',
                 'django.contrib.auth',
                 'django.contrib.admin',
                 'django.contrib.contenttypes',

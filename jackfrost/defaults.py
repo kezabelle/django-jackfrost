@@ -29,6 +29,7 @@ JACKFROST_CONTENT_TYPES = {
     "text/x-markdown": '.md',
     "text/markdown": '.md',
     "text/xml": '.xml',
+    "application/xml": '.xml',
     "text/rss+xml": '.rss',
     "application/rss+xml": '.rss',
     "application/atom+xml": '.atom',

@@ -63,6 +63,13 @@ def test_target_filename_with_extension_already():
         url='/a/b/c/test.js', response=resp) == 'a/b/c/test.js'
 
 
+def test_target_filename_xmltype():
+    reader = URLReader(urls=())
+    resp = {'Content-Type': None}
+    assert reader.get_target_filename(
+        url='sitemap.xml', response=resp) == 'sitemap.xml'
+
+
 def test_get_client():
     reader = URLReader(urls=())
     assert isinstance(reader.client, Client) is True
