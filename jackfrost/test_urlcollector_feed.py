@@ -5,14 +5,12 @@ from __future__ import unicode_literals
 from __future__ import division
 from django.contrib.auth import get_user_model
 from django.contrib.syndication.views import Feed
-from django.core.urlresolvers import reverse, resolve
-from django.test import RequestFactory
-from jackfrost.models import URLCollector, SitemapRenderer
+from jackfrost.models import URLCollector, FeedRenderer
 import pytest
 
 
-def test_medusa_renderer_repr():
-    assert repr(SitemapRenderer(cls=1)) == '<jackfrost.models.SitemapRenderer sitemap_cls=1>'
+def test_feed_renderer_repr():
+    assert repr(FeedRenderer(cls=1)) == '<jackfrost.models.FeedRenderer feed_cls=1>'
 
 
 @pytest.mark.django_db

@@ -9,7 +9,7 @@ from jackfrost.models import URLCollector, SitemapRenderer
 import pytest
 
 
-def test_medusa_renderer_repr():
+def test_sitemap_renderer_repr():
     assert repr(SitemapRenderer(cls=1)) == '<jackfrost.models.SitemapRenderer sitemap_cls=1>'
 
 
