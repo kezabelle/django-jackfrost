@@ -47,12 +47,12 @@ def test_using_as_presave():
     # this is a bit hoop-jumpy ;/
     url = '%s/index.html' % user.get_absolute_url()[1:]
     writer = URLWriter(data=None)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
     with pytest.raises(IOError):
         storage.open(url)
 
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         with tidying_signal(cls=UserPresaveProxy, signal=pre_save):
             user.save()
 
@@ -78,12 +78,12 @@ def test_using_as_postsave():
     # this is a bit hoop-jumpy ;/
     url = '%s/index.html' % user.get_absolute_url()[1:]
     writer = URLWriter(data=None)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
     with pytest.raises(IOError):
         storage.open(url)
 
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         with tidying_signal(cls=UserPostsaveProxy, signal=post_save):
             user.save()
 
@@ -112,12 +112,12 @@ def test_using_as_presave_but_cannot_build():
     # this is a bit hoop-jumpy ;/
     url = '%s/index.html' % user.get_absolute_url()[1:]
     writer = URLWriter(data=None)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
     with pytest.raises(IOError):
         storage.open(url)
 
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         with tidying_signal(cls=UserPostsaveCannotBuild, signal=pre_save):
             user.save()
 

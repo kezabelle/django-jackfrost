@@ -109,9 +109,9 @@ sitemaps = {
     'users': UserSitemap,
 }
 
-urlpatterns = patterns('',
+urlpatterns = [
    url(r'^sitemap\.xml$', sitemap_index, {'sitemaps': sitemaps}, name='sitemap'),
-    url(r'^sitemap-(?P<section>.+)/$', sitemap_section, {'sitemaps': sitemaps}, name='sitemap'),
+   url(r'^sitemap-(?P<section>.+)/$', sitemap_section, {'sitemaps': sitemaps}, name='sitemap'),
    url(r'^admin/', include(admin.site.urls)),
    url(r'^users/show/(?P<pk>\d+)/$', show_user, name='show_user'),
    url(r'^users/generate/$', make_users, name='make_users'),
@@ -122,4 +122,4 @@ urlpatterns = patterns('',
    url(r'^content/a/$', content_a, name='content_a'),
    url(r'^r/a/$', redirect_a, name='redirect_a'),
    url(r'^r/a_b/$', redirect_b, name='redirect_b'),
-)
+]

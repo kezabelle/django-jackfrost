@@ -12,6 +12,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,testserver').split(',
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
 settings.configure(
+    BASE_DIR=BASE_DIR,
     DEBUG=DEBUG,
     SECRET_KEY=SECRET_KEY,
     ALLOWED_HOSTS=ALLOWED_HOSTS,
@@ -49,6 +50,7 @@ settings.configure(
         'jackfrost',
     ),
     STATIC_ROOT=os.path.join(BASE_DIR, 'test_collectstatic', 'demo_project'),
+    STATICFILES_DIRS=(os.path.join(BASE_DIR, '__jackfrost'),),
     STATIC_URL='/__static__/',
     JACKFROST_RENDERERS=('test_urls.UserListRenderer',),
     MESSAGE_STORAGE='django.contrib.messages.storage.cookie.CookieStorage',

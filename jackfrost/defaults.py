@@ -5,17 +5,19 @@ import os
 from django.contrib.staticfiles.storage import StaticFilesStorage
 
 
-__all__ = ['SubfolderStaticFilesStorage', 'JACKFROST_STORAGE',
+__all__ = ['JackfrostFilesStorage', 'JACKFROST_STORAGE',
            'JACKFROST_STORAGE_KWARGS', 'JACKFROST_CONTENT_TYPES']
 
 
-class SubfolderStaticFilesStorage(StaticFilesStorage):
-    def __init__(self, *args, **kwargs):
-        super(SubfolderStaticFilesStorage, self).__init__(*args, **kwargs)
-        self.location = os.path.join(self.location, 'jackfrost')
+class JackfrostFilesStorage(StaticFilesStorage):
+    def __init__(self, location=None, *args, **kwargs):
+        if location is None:
+            from django.conf import settings
+            location = os.path.join(settings.BASE_DIR, '__jackfrost')
+        super(JackfrostFilesStorage, self).__init__(location, *args, **kwargs)
 
 
-JACKFROST_STORAGE = 'jackfrost.defaults.SubfolderStaticFilesStorage'
+JACKFROST_STORAGE = 'jackfrost.defaults.JackfrostFilesStorage'
 JACKFROST_STORAGE_KWARGS = {}
 
 JACKFROST_CONTENT_TYPES = {

@@ -3,15 +3,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.encoding import force_bytes
-import os
 from django.test.client import Client
 from django.test.utils import override_settings
 from jackfrost import defaults
-from jackfrost.models import URLReader, URLWriter, ReaderError
-from jackfrost.defaults import SubfolderStaticFilesStorage
+from jackfrost.models import URLReader, ReaderError
 import pytest
 
 

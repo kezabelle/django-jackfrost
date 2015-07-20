@@ -61,7 +61,7 @@ def test_actions_build_selected_post():
     # this is a bit hoop-jumpy ;/
     url = '%s/index.html' % user.get_absolute_url()[1:]
     writer = URLWriter(data=None)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
     with pytest.raises(IOError):
         storage.open(url)
@@ -71,7 +71,7 @@ def test_actions_build_selected_post():
     request.user = user
     SessionMiddleware().process_request(request=request)
     MessageMiddleware().process_request(request=request)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
 
         do_stuff = build_selected(modeladmin=madmin, request=request,
                                   queryset=UserActionPOSTProxy.objects.all())

@@ -22,7 +22,7 @@ def test_building_a_single_item():
     rmtree(path=NEW_STATIC_ROOT, ignore_errors=True)
     current_app.conf.CELERY_ALWAYS_EAGER = settings.CELERY_ALWAYS_EAGER
     current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         result = build_single.delay(url=url).get()
     assert result == (
         (
@@ -51,6 +51,6 @@ def test_building_all():
              for x in range(100)]
     current_app.conf.CELERY_ALWAYS_EAGER = settings.CELERY_ALWAYS_EAGER
     current_app.conf.CELERY_EAGER_PROPAGATES_EXCEPTIONS = settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT, JACKFROST_RENDERERS=renderers):  # noqa
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT, JACKFROST_RENDERERS=renderers):  # noqa
         result = build_all.apply().get()
     assert len(result) == 123

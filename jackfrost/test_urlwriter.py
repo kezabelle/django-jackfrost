@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
-from jackfrost.defaults import SubfolderStaticFilesStorage
+from jackfrost.defaults import JackfrostFilesStorage
 import os
 from shutil import rmtree
 from django.conf import settings
@@ -30,10 +30,9 @@ def test_repr_long():
 
 def test_get_storage():
     writer = URLWriter(data=None)
-    assert isinstance(writer.storage, SubfolderStaticFilesStorage) is True
+    assert isinstance(writer.storage, JackfrostFilesStorage) is True
     assert writer.storage.location == os.path.join(settings.BASE_DIR,
-                                                   'test_collectstatic',
-                                                   'jackfrost')
+                                                   '__jackfrost')
 
 
 def test_build():
@@ -46,7 +45,7 @@ def test_build():
                                    'urlwriter', 'build')
     rmtree(path=NEW_STATIC_ROOT, ignore_errors=True)
     writer = URLWriter(data=read_results)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
     output = writer()
     files_saved = []
@@ -71,7 +70,7 @@ def test_write_single_item():
     NEW_STATIC_ROOT = os.path.join(settings.BASE_DIR, 'test_collectstatic',
                                    'urlwriter', 'write_single_item')
     rmtree(path=NEW_STATIC_ROOT, ignore_errors=True)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
 
     output = writer.write(read_results[0])

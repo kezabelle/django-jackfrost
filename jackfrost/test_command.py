@@ -13,24 +13,6 @@ from django.test.utils import override_settings
 from django.utils.six import StringIO
 from jackfrost.models import URLWriter
 import pytest
-#
-#
-# def setup_module(module):
-#     """
-#     Removes everything in our static folder between tests,
-#     so that we get false positives
-#     """
-#     writer = URLBuilder(urls=())
-#     NEW_STATIC_ROOT = os.path.join(settings.STATIC_ROOT, 'test_collectstatic',
-#                                    'collectstaticsite')
-#     with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
-#         our_path = writer.storage.path('')
-#     assert our_path.startswith(settings.STATIC_ROOT) is True
-#     assert our_path.startswith(settings.BASE_DIR) is True
-#     # As this happens on every test, it will sometimes raise
-#     # OSError because collectstatic/jackfrost no longer exists.
-#     # We just ignore it and hope for the best ...
-#     rmtree(path=our_path, ignore_errors=True)
 
 
 class DummyRenderer():
@@ -44,7 +26,7 @@ def test_collectstaticsite_goes_ok():
     NEW_STATIC_ROOT = os.path.join(settings.BASE_DIR, 'test_collectstatic',
                                    'collectstaticsite', 'goes_ok')
     rmtree(path=NEW_STATIC_ROOT, ignore_errors=True)
-    with override_settings(STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(BASE_DIR=NEW_STATIC_ROOT):
         storage = writer.storage
 
     with pytest.raises(IOError):
@@ -57,7 +39,7 @@ def test_collectstaticsite_goes_ok():
         storage.open('content/a/b/index.html')
 
     out = StringIO()
-    with override_settings(JACKFROST_RENDERERS=[DummyRenderer], STATIC_ROOT=NEW_STATIC_ROOT):
+    with override_settings(JACKFROST_RENDERERS=[DummyRenderer], BASE_DIR=NEW_STATIC_ROOT):
         output = call_command('collectstaticsite', interactive=False, stdout=out)
     assert output is None
     stdout = out.getvalue().splitlines()

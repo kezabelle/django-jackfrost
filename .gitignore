@@ -17,3 +17,4 @@ htmlcov/
 build
 jackfrost/models.c
 jackfrost/models.so
+__jackfrost
