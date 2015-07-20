@@ -50,8 +50,8 @@ Provides ``build_started``, ``build_finished``, ``reader_started``,
 ``writer_finished``, ``write_page`` and ``read_page`` which are fired at
 various, hopefully obvious, points.
 
-utils
-^^^^^
+receivers
+^^^^^^^^^
 
 Provides the ``build_page_for_obj`` function, suitable for wiring up to
 ``pre_save`` or ``post_save`` signals.
@@ -61,6 +61,11 @@ Also provides ``eventlog_write``, which can be used as a receiver for the
 You need to have ``pinax.eventlog`` in your ``INSTALLED_APPS`` to use it, and
 you must wire the signal and reciever together yourself, preferably in an
 ``AppConfig.ready()``
+
+utils
+^^^^^
+
+Provides ``is_url_usable`` which does path-ending validity checks.
 
 .. _Django: https://docs.djangoproject.com/en/stable/
 .. _staticfiles: https://docs.djangoproject.com/en/stable/ref/contrib/staticfiles/

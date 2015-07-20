@@ -82,7 +82,7 @@ Configuration & usage
 Set ``JACKFROST_STORAGE`` to whatever storage backend you'd like to use, in
 your project's settings. By default, a subclass of
 ``django.contrib.staticfiles.storage.StaticFilesStorage`` which puts output into
-a ``jackfrost`` directory will be used.
+a ``__jackfrost`` directory will be used.
 
 If your storage backend needs any arguments that can't be gleaned from individual
 settings, you can set ``JACKFROST_STORAGE_KWARGS`` to a dictionary of
@@ -191,7 +191,7 @@ There are 8 signals in total:
 Rendering on model change
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Additionally, there is a listener, ``jackfrost.utils.build_page_for_obj`` which
+Additionally, there is a listener, ``jackfrost.receivers.build_page_for_obj`` which
 is suitable for being used as a ``pre_save`` or ``post_save`` receiver for
 a ``Model`` instance, and will attempt to build just the ``get_absolute_url`` for
 that object.

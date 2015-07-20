@@ -1,6 +1,16 @@
 Change log
 ----------
 
+?next?
+^^^^^^
+
+* Added a ``--dry-run`` argument to the ``collectstaticsite`` management command
+  to preview changes using the standard Django server, without writing anything
+  to the storage backend.
+* Moved ``jackfrost.utils.build_page_for_obj`` and ``jackfrost.utils.eventlog_write`
+  to ``receivers`` to better represent their use as signal listeners.
+* Raise an error if a URL doesn't end with a slash or a file extension.
+
 0.4.0
 ^^^^^^
 
