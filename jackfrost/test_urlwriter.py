@@ -7,7 +7,16 @@ from jackfrost.defaults import JackfrostFilesStorage
 import os
 from shutil import rmtree
 from django.conf import settings
-from django.core.urlresolvers import reverse, clear_script_prefix
+from django.core.urlresolvers import reverse
+try:
+    from django.core.urlresolvers import clear_script_prefix
+except ImportError:  # Django 1.5
+    from django.core.urlresolvers import _prefixes
+    def clear_script_prefix():
+        try:
+            del _prefixes.value
+        except AttributeError:
+            pass
 from django.test.utils import override_settings
 from jackfrost.models import URLReader
 from jackfrost.models import ReadResult
