@@ -7,7 +7,7 @@ from jackfrost.defaults import JackfrostFilesStorage
 import os
 from shutil import rmtree
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, clear_script_prefix
 from django.test.utils import override_settings
 from jackfrost.models import URLReader
 from jackfrost.models import ReadResult
@@ -60,6 +60,35 @@ def test_build():
     assert storage.open(sorted_files_saved[-1]).readlines() == [b'content_a']
     # remove(storage)
 
+
+def test_build_with_force_script_name():
+    NEW_STATIC_ROOT = os.path.join(settings.BASE_DIR, 'test_collectstatic',
+                                   'urlwriter', 'build_with_force_script_name')
+    rmtree(path=NEW_STATIC_ROOT, ignore_errors=True)
+    with override_settings(FORCE_SCRIPT_NAME='test.php', BASE_DIR=NEW_STATIC_ROOT):
+        reader = URLReader(urls=(
+            reverse('content_a'),
+            reverse('content_b'),
+        ))
+        read_results = tuple(reader())
+        writer = URLWriter(data=read_results)
+        storage = writer.storage
+        output = writer()
+        files_saved = []
+        for built in output:
+            files_saved.append(built.storage_result)
+        sorted_files_saved = sorted(files_saved)
+        assert sorted_files_saved == [
+            'content/a/b/index.html',
+            'content/a/index.html'
+        ]
+        try:
+            assert storage.open(sorted_files_saved[-2]).readlines() == [b'content_b']
+            assert storage.open(sorted_files_saved[-1]).readlines() == [b'content_a']
+        finally:
+            # failure to do this will bleed the value of FORCE_SCRIPT_NAME
+            # into other tests ...
+            clear_script_prefix()
 
 
 def test_write_single_item():
