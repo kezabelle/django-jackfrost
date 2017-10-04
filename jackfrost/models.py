@@ -153,7 +153,7 @@ class URLReader(object):
                           content=force_bytes(result))
 
     def build_page(self, url):
-        resp = self.client.get(url, follow=True)
+        resp = self.client.get(url, follow=True, **{'HTTP_USER_AGENT':'jackfrost'})
         assert resp.status_code == 200, "Got %(code)d response for %(url)s" % {
             'code': resp.status_code, 'url': url}
 
